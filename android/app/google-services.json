@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578254388177",
+    "project_id": "dhgc-firebase-authentication",
+    "storage_bucket": "dhgc-firebase-authentication.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578254388177:android:c54001e4af0059023f7ef0",
+        "android_client_info": {
+          "package_name": "com.example.dhgc_chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDi9OyLnZRR3L6NkKvZ6v8nLQlLtcRMsq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
