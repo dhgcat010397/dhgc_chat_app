@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';
-// import 'package:dhgc_chat_app/src/features/home/presentation/views/home_page.dart';
+import 'package:dhgc_chat_app/src/features/list_conversations/presentation/views/home_page.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
 
     switch (settings.name) {
-      // case AppRoutes.home:
-      //   return MaterialPageRoute(builder: (_) => const HomePage());
+      case AppRoutes.home:
+        return MaterialPageRoute(builder: (_) => const HomePage());
 
       // case AppRoutes.productDetail:
       //   if (args is int) {

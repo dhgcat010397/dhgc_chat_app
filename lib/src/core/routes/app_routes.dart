@@ -1,7 +1,7 @@
 abstract class AppRoutes {
   static const String home = '/home';
-  static const String noteDetail = '/note/detail';
+  static const String conversationDetail = '/conversation/detail';
 
   // Helper method to pass params
-  static String getNoteDetailPath(int id) => '/note/$id';
+  static String getConversationDetailPath(int id) => '/conversation/$id';
 }
