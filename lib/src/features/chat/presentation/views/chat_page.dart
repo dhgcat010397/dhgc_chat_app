@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
+
 import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/bubble_chat.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/message_textfield.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/mini_profile.dart';
-import 'package:flutter/material.dart';
+
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
