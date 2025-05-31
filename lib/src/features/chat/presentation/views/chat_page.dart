@@ -236,7 +236,7 @@ class _ChatPageState extends State<ChatPage> {
                 BubbleChat(
                   message: messageContent,
                   isMe: isMe,
-                  senderBubbleColor: Colors.blueAccent,
+                  senderBubbleColor: AppColors.primaryColor,
                   receiverBubbleColor: Colors.grey[200]!,
                   senderTextColor: Colors.black,
                   receiverTextColor: Colors.white,
