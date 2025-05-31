@@ -1,3 +1,4 @@
+import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -140,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                         hintText: 'Search by Receiver\'s Name',
                       ),
                     ),
-                    const SizedBox(height: 30.0),
+                    const SizedBox(height: 20.0),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: () async {
@@ -165,6 +166,16 @@ class _HomePageState extends State<HomePage> {
                               isOnline:
                                   index % 2 ==
                                   0, // Example condition for online status
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.chat,
+                                  arguments: {
+                                    'conversationId': "${index + 1}",
+                                    'receiverId': "${index + 11}",
+                                  },
+                                );
+                              },
                             );
                           },
                         ),
