@@ -1,4 +1,5 @@
 import 'package:dhgc_chat_app/src/core/utils/validators/input_validators.dart';
+import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/text_divider.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/password_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -81,6 +82,12 @@ class _LoginPageState extends State<LoginPage> {
                   _buildLoginButton(),
                   const SizedBox(height: 20),
                   _buildRegisterButton(),
+                  TextDivider(),
+                  _loginWithGoogleButton(),
+                  const SizedBox(height: 10),
+                  _loginWithFacebookButton(),
+                  const SizedBox(height: 10),
+                  _loginWithAppleButton(),
                 ],
               ),
             ),
@@ -155,6 +162,92 @@ class _LoginPageState extends State<LoginPage> {
             recognizer: TapGestureRecognizer()..onTap = widget.onTap,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _loginWithGoogleButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Handle Google sign-in action
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          backgroundColor: Colors.white,
+          side: BorderSide(color: AppColors.primaryColor),
+        ),
+        icon: const Icon(
+          Icons.g_mobiledata_rounded,
+          color: AppColors.primaryColor,
+          size: 24.0,
+        ),
+        label: const Text(
+          'Sign in with Google',
+          style: TextStyle(
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 16.0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _loginWithFacebookButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Handle Facebook sign-in action
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          backgroundColor: Colors.blue,
+        ),
+        icon: const Icon(Icons.facebook, color: Colors.white, size: 24.0),
+        label: const Text(
+          'Sign in with Facebook',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16.0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _loginWithAppleButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Handle Apple sign-in action
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          backgroundColor: Colors.black,
+        ),
+        icon: const Icon(Icons.apple, color: Colors.white, size: 24.0),
+        label: const Text(
+          'Sign in with Apple',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16.0,
+          ),
+        ),
       ),
     );
   }
