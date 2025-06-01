@@ -1,6 +1,6 @@
-import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
+import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/app_images.dart';
 
 part 'google_login_button.dart';
