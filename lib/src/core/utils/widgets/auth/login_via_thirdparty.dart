@@ -52,7 +52,7 @@ abstract class LoginButtonBase extends StatelessWidget {
                         buttonText!,
                         style: TextStyle(
                           color: textColor,
-                          fontSize: 16,
+                          fontSize: textSize,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
