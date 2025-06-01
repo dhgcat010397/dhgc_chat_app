@@ -1,9 +1,4 @@
-import 'package:dhgc_chat_app/src/core/utils/validators/input_validators.dart';
-import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/password_textfield.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-
-import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
+part of 'auth_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, this.onTap});
@@ -87,7 +82,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 20),
                   _buildConfirmPasswordField(),
                   const SizedBox(height: 20),
-                  _buildRegisterButton(),
+                  AuthButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        // Handle login action
+                      }
+                    },
+                    buttonText: 'REGISTER',
+                  ),
                   const SizedBox(height: 20),
                   _buildLoginButton(),
                 ],

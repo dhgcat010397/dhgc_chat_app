@@ -1,6 +1,15 @@
-import 'package:dhgc_chat_app/src/features/auth/presentation/views/login_page.dart';
-import 'package:dhgc_chat_app/src/features/auth/presentation/views/register_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+
+import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
+import 'package:dhgc_chat_app/src/core/utils/validators/input_validators.dart';
+import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/auth_button.dart';
+import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/password_textfield.dart';
+import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/text_divider.dart';
+import 'package:dhgc_chat_app/src/core/utils/widgets/auth/login_via_thirdparty.dart';
+
+part 'login_page.dart';
+part 'register_page.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
