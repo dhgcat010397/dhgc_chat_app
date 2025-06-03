@@ -65,6 +65,8 @@ class ConversationCard extends StatelessWidget {
                     Text(
                       lastMessage,
                       textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                       style: const TextStyle(
                         fontSize: 14.0,
                         fontWeight: FontWeight.w300,

@@ -78,20 +78,21 @@ class _HomePageState extends State<HomePage> {
                     height: 60.0,
                     fit: BoxFit.cover,
                   ),
-                  const SizedBox(width: 10.0),
-                  Text(
-                    'Hello, ${user.displayName!.isEmpty ? user.username : user.displayName}!',
-                    style: TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  const SizedBox(width: 5.0),
+                  Expanded(
+                    child: Text(
+                      '${user.displayName!.isEmpty ? user.username : user.displayName}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  CircleAvatarWidget(
-                    imageUrl: user.imgUrl!,
-                    size: 50.0,
-                  ),
+                  const SizedBox(width: 10.0),
+                  CircleAvatarWidget(imageUrl: user.imgUrl!, size: 60.0),
                 ],
               ),
             ),
@@ -100,7 +101,7 @@ class _HomePageState extends State<HomePage> {
               child: Text(
                 'Welcome to',
                 style: TextStyle(
-                  fontSize: 24.0,
+                  fontSize: 22.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -112,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                 'Chat App',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 40.0,
+                  fontSize: 35.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
