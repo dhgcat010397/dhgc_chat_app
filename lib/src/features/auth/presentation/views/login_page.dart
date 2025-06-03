@@ -88,6 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                   GoogleLoginButton(
                     onPressed: () {
                       // Handle Google sign-in action
+                      context.read<AuthBloc>().add(AuthEvent.loginWithGoogle());
                     },
                   ),
                   const SizedBox(height: 10),

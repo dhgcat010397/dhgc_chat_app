@@ -1,16 +1,18 @@
-import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';
-import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
+import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 
-import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
+import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';
+import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/app_images.dart';
+import 'package:dhgc_chat_app/src/core/utils/extensions/string_extension.dart';
+import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
 import 'package:dhgc_chat_app/src/features/list_conversations/presentation/widgets/search_bar.dart';
 import 'package:dhgc_chat_app/src/features/list_conversations/presentation/widgets/conversation_card.dart';
-import 'package:dhgc_chat_app/src/core/helpers/string_helper.dart'
-    show cleanedQuery;
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.user});
+
+  final UserEntity user;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,11 +22,15 @@ class _HomePageState extends State<HomePage> {
   late ScrollController _scrollController;
   String _searchQuery = "";
 
+  late UserEntity user;
+
   @override
   void initState() {
     super.initState();
 
     _scrollController = ScrollController();
+
+    user = widget.user;
   }
 
   @override
@@ -73,8 +79,8 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.cover,
                   ),
                   const SizedBox(width: 10.0),
-                  const Text(
-                    'Hello, User!',
+                  Text(
+                    'Hello, ${user.displayName!.isEmpty ? user.username : user.displayName}!',
                     style: TextStyle(
                       fontSize: 24.0,
                       fontWeight: FontWeight.bold,
@@ -83,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const Spacer(),
                   CircleAvatarWidget(
-                    imageUrl: 'https://example.com/avatar.png',
+                    imageUrl: user.imgUrl!,
                     size: 50.0,
                   ),
                 ],
@@ -135,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                       child: ChatAppSearchBar(
                         onSearch: (query) {
                           // Handle search logic here
-                          _searchQuery = cleanedQuery(query);
+                          _searchQuery = query.cleanedQuery;
                           debugPrint('Search query: "$_searchQuery"');
                         },
                         hintText: 'Search by Receiver\'s Name',
