@@ -6,6 +6,6 @@ import 'package:dhgc_chat_app/src/core/utils/analytics_injection_container.dart'
 final sl = GetIt.instance;
 
 Future<void> initInjections() async {
-  await authInjectionContainer();
   await analyticsInjectionContainer();
+  await authInjectionContainer();
 }

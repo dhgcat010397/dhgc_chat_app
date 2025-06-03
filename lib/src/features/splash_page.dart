@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:get_it/get_it.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:dhgc_chat_app/firebase_options.dart';
 import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/app_images.dart';
 import 'package:dhgc_chat_app/src/core/helpers/analytics_helper.dart';
@@ -11,7 +10,6 @@ import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart
 import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/views/auth_page.dart';
 import 'package:dhgc_chat_app/src/features/list_conversations/presentation/views/home_page.dart';
-import 'package:get_it/get_it.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -34,8 +32,8 @@ class _SplashPageState extends State<SplashPage> {
     // 1. Perform initializations
     await Future.wait([
       _loadEssentialData(),
-      _checkAuthStatus(),
-      Future.delayed(const Duration(seconds: 2)), // Minimum splash duration
+      _checkAuthStatus(context.read<AuthBloc>()),
+      // Future.delayed(const Duration(seconds: 2)), // Minimum splash duration
     ]);
 
     // 2. Trigger navigation via BLoC (recommended)
@@ -44,7 +42,6 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _loadEssentialData() async {
     await Future.wait([
-      Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
       SharedPreferencesHelper.init(),
       // DatabaseHelper.instance.database
       // LocalStorage.init(),
@@ -53,8 +50,8 @@ class _SplashPageState extends State<SplashPage> {
     ]);
   }
 
-  Future<void> _checkAuthStatus() async {
-    final authBloc = context.read<AuthBloc>();
+  Future<void> _checkAuthStatus(AuthBloc authBloc) async {
+    await Future.delayed(const Duration(seconds: 2));
     authBloc.add(const AuthEvent.checkAuthentication());
   }
 
