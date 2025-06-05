@@ -8,13 +8,15 @@ import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart
 import 'package:dhgc_chat_app/src/features/auth/data/datasources/remote/user_remote_datasource.dart';
 
 class UserRemoteDatasourceImpl implements UserRemoteDatasource {
-  UserRemoteDatasourceImpl();
+  final FirestoreService _firestoreService;
+
+  UserRemoteDatasourceImpl(this._firestoreService);
 
   @override
   Future<bool> checkUserExits(String uid, {BuildContext? context}) async {
     try {
-      final userExists = await FirestoreService().checkDocumentExists(
-        collectionPath: 'users',
+      final userExists = await _firestoreService.checkDocumentExists(
+        collection: 'users',
         docId: uid,
       );
 
@@ -52,8 +54,8 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       });
 
       try {
-        final uid = await FirestoreService().setDocument(
-          collectionPath: 'users',
+        final uid = await _firestoreService.setDocument(
+          collection: 'users',
           docId: user.uid,
           data: userData,
         );
@@ -106,10 +108,10 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       });
 
       try {
-        await FirestoreService().updateDocument(
-          collectionPath: 'users',
+        await _firestoreService.updateDocument(
+          collection: 'users',
           docId: user.uid,
-          data: userData,
+          updates: userData,
         );
 
         debugPrint('🔄 User data updated successfully: $userData');
@@ -145,10 +147,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   @override
   Future<void> deleteUser(String uid, {BuildContext? context}) async {
     try {
-      await FirestoreService().deleteDocument(
-        collectionPath: 'users',
-        docId: uid,
-      );
+      await _firestoreService.deleteDocument(collection: 'users', docId: uid);
 
       debugPrint('🗑️ Successfully deleted user $uid');
 
@@ -188,18 +187,18 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       }
 
       // Get document from Firestore
-      final snapshot = await FirestoreService().getDocument(
-        collectionPath: 'users',
+      final snapshot = await _firestoreService.getDocument(
+        collection: 'users',
         docId: uid,
       );
 
       // Check if document exists
-      if (!snapshot.exists) {
+      if (snapshot == null) {
         throw Exception('User not found');
       }
 
       // Convert data to typed map
-      final userData = snapshot.data() as Map<String, dynamic>;
+      final userData = snapshot;
 
       final userInfo = UserEntity(
         uid: userData['uid'],

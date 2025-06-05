@@ -1,21 +1,27 @@
+import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
 import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
+import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_status.dart';
+import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/bubble_chat.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/message_textfield.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/mini_profile.dart';
-
+import 'package:dhgc_chat_app/src/features/chat/presentation/bloc/chat_bloc.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
     super.key,
     required this.conversationId,
     required this.receiverId,
+    required this.user,
   });
 
   final String conversationId;
   final String receiverId;
+  final UserEntity user;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -25,8 +31,7 @@ class _ChatPageState extends State<ChatPage> {
   late ScrollController _scrollController;
   late TextEditingController _messageController;
   late FocusNode _messageFocusNode;
-  // late TextEditingController _searchController;
-  String _searchQuery = "";
+  // String _searchQuery = "";
   bool _showScrollButton = false;
 
   @override
@@ -35,21 +40,20 @@ class _ChatPageState extends State<ChatPage> {
 
     _scrollController = ScrollController();
     _messageController = TextEditingController();
-    // _searchController = TextEditingController();
     _messageFocusNode = FocusNode();
 
     _scrollController.addListener(_updateScrollButtonVisibility);
+
+    // Initialize chat by loading messages
+    context.read<ChatBloc>().add(ChatEvent.loadMessages(widget.conversationId));
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_updateScrollButtonVisibility);
-
     _scrollController.dispose();
     _messageController.dispose();
-    // _searchController.dispose();
     _messageFocusNode.dispose();
-
     super.dispose();
   }
 
@@ -85,123 +89,231 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: MiniProfile(
-          userId: widget.receiverId,
-          userName: "User ${widget.receiverId}",
-          userAvatar: 'https://example.com/avatar.png',
-          isOnline: true,
-          avatarSize: 40.0,
-        ),
-        backgroundColor: AppColors.primaryColor,
-        elevation: 0.0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-          ),
-          tooltip: 'Back',
-          onPressed: () {
-            Navigator.of(context).pop();
+    return BlocConsumer<ChatBloc, ChatState>(
+      listener: (context, state) {
+        state.whenOrNull(
+          error: (code, message) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message ?? 'An error occurred')),
+            );
           },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.call, color: Colors.white),
-            tooltip: 'Start a voice call',
-            onPressed: () {
-              // Handle more options
-              debugPrint('Voice call pressed');
-            },
+          callInProgress: (call) {
+            // Handle call in progress
+            debugPrint('Call in progress: ${call.callId}');
+          },
+          callEnded: (call) {
+            // Handle call ended
+            debugPrint('Call ended: ${call.callId}');
+          },
+        );
+      },
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: MiniProfile(
+              userId: widget.receiverId,
+              userName: "User ${widget.receiverId}",
+              userAvatar: 'https://example.com/avatar.png',
+              isOnline: true,
+              avatarSize: 40.0,
+            ),
+            backgroundColor: AppColors.primaryColor,
+            elevation: 0.0,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
+              tooltip: 'Back',
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.call, color: Colors.white),
+                tooltip: 'Start a voice call',
+                onPressed: () {
+                  context.read<ChatBloc>().add(
+                    ChatEvent.startCall(
+                      chatroomId: widget.conversationId,
+                      callType: CallType.voice,
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.video_call, color: Colors.white),
+                tooltip: 'Start a video call',
+                onPressed: () {
+                  context.read<ChatBloc>().add(
+                    ChatEvent.startCall(
+                      chatroomId: widget.conversationId,
+                      callType: CallType.video,
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                tooltip: 'More options',
+                onPressed: () {
+                  // Handle more options
+                  debugPrint('More options pressed');
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.video_call, color: Colors.white),
-            tooltip: 'Start a video call',
-            onPressed: () {
-              // Handle more options
-              debugPrint('Video call pressed');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            tooltip: 'More options',
-            onPressed: () {
-              // Handle more options
-              debugPrint('More options pressed');
-            },
-          ),
-        ],
-      ),
-      backgroundColor: AppColors.primaryColor,
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30.0),
-            topRight: Radius.circular(30.0),
-          ),
-        ),
-        child: Stack(
-          children: [
-            Column(
+          backgroundColor: AppColors.primaryColor,
+          body: Container(
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30.0),
+                topRight: Radius.circular(30.0),
+              ),
+            ),
+            child: Stack(
               children: [
-                const SizedBox(height: 30.0),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      // Handle refresh logic here
-                      debugPrint('Refresh triggered');
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      shrinkWrap: true,
-                      reverse: true,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      itemCount: 50, // Replace with your actual data count
-                      itemBuilder: (context, index) {
-                        return _buildMessageItem(
-                          messageId: 'msg_$index',
-                          messageContent: 'Message content $index',
-                          isMe: index % 2 == 0, // Simulate alternating sender
-                          timestamp: DateTime.now().subtract(
-                            Duration(minutes: index),
+                Column(
+                  children: [
+                    const SizedBox(height: 30.0),
+                    Expanded(
+                      child: state.when(
+                        initial:
+                            () => Center(child: CircularProgressIndicator()),
+                        loading:
+                            () => Center(child: CircularProgressIndicator()),
+                        loaded: (
+                          messages,
+                          isTyping,
+                          isLoadingMore,
+                          hasMoreMessages,
+                          ongoingCall,
+                          errorMessage,
+                          loadMoreError,
+                        ) {
+                          return RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<ChatBloc>().add(
+                                ChatEvent.loadMessages(widget.conversationId),
+                              );
+                            },
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              shrinkWrap: true,
+                              reverse: true,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                final message = messages[index];
+                                return _buildMessageItem(
+                                  messageId: message.messageId,
+                                  messageContent: message.text!,
+                                  isMe:
+                                      message.senderId ==
+                                      'current_user_id', // Replace with actual current user ID
+                                  timestamp: message.timestamp,
+                                  isOnline:
+                                      true, // You should get this from user status
+                                  senderAvatar:
+                                      'https://example.com/avatar.png',
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        error:
+                            (code, message) => Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(message ?? 'An error occurred'),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      context.read<ChatBloc>().add(
+                                        ChatEvent.loadMessages(
+                                          widget.conversationId,
+                                        ),
+                                      );
+                                    },
+                                    child: Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        callInProgress:
+                            (call) => Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Call in progress: ${call.callType}'),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      context.read<ChatBloc>().add(
+                                        ChatEvent.endCall(
+                                          chatroomId: widget.conversationId,
+                                          callId: call.callId,
+                                          callStatus: CallStatus.ended,
+                                        ),
+                                      );
+                                    },
+                                    child: Text('End Call'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        callEnded:
+                            (call) => Center(
+                              child: Text('Call ended: ${call.callType}'),
+                            ),
+                      ),
+                    ),
+                    MessageTextfield(
+                      onSendMessage: (message) {
+                        context.read<ChatBloc>().add(
+                          ChatEvent.sendTextMessage(
+                            chatroomId: widget.conversationId,
+                            senderId:
+                                'current_user_id', // Replace with actual user ID
+                            text: message,
                           ),
-                          isOnline: index % 3 == 0, // Simulate online status
-                          senderAvatar: 'https://example.com/avatar.png',
                         );
+                        _messageController.clear();
                       },
                     ),
+                  ],
+                ),
+
+                // Scroll to bottom button
+                if (_showScrollButton)
+                  Positioned(
+                    bottom: 80,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: FloatingActionButton(
+                        mini: true,
+                        tooltip: 'Scroll to bottom',
+                        shape: CircleBorder(),
+                        backgroundColor: AppColors.primaryColor,
+                        onPressed: _scrollToBottom,
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                MessageTextfield(
-                  onSendMessage: (message) => _sendMessage(message),
-                ),
               ],
             ),
-
-            // Scroll to bottom button
-            if (_showScrollButton)
-              Positioned(
-                bottom: 80,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: FloatingActionButton(
-                    mini: true,
-                    tooltip: 'Scroll to bottom',
-                    shape: CircleBorder(),
-                    backgroundColor: AppColors.primaryColor,
-                    onPressed: _scrollToBottom,
-                    child: Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -243,8 +355,10 @@ class _ChatPageState extends State<ChatPage> {
                   senderTextColor: Colors.black,
                   receiverTextColor: Colors.white,
                   onTap: () {
-                    // Handle bubble tap
-                    debugPrint('Tapped on message bubble: $messageId');
+                    // Mark message as seen when tapped
+                    context.read<ChatBloc>().add(
+                      ChatEvent.messageSeen(messageId),
+                    );
                   },
                 ),
                 SizedBox(height: 4),
@@ -263,11 +377,5 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatTime(DateTime time) {
     return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
-  }
-
-  void _sendMessage(String message) {
-    debugPrint('Sending message: $message');
-    // Optionally scroll to the bottom after sending a message
-    _scrollToBottom();
   }
 }

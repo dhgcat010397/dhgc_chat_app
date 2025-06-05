@@ -1,133 +1,306 @@
-import 'package:flutter/material.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // Singleton pattern
   static final FirestoreService _instance = FirestoreService._internal();
-  factory FirestoreService() => _instance;
-  FirestoreService._internal();
+  final FirebaseFirestore _firestore;
 
-  /// [collectionPath] - The path to the collection (e.g., 'users')
-  /// [docId] - The ID of the document
-  /// Check if the user document exists in the [collectionPath] collection
+  factory FirestoreService() => _instance;
+
+  FirestoreService._internal() : _firestore = FirebaseFirestore.instance {
+    // Enable offline persistence (optional)
+    _firestore.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+  }
+
   Future<bool> checkDocumentExists({
-    required String collectionPath,
+    required String collection,
     required String docId,
   }) async {
     try {
-      final doc =
-          await FirebaseFirestore.instance
-              .collection(collectionPath)
-              .doc(docId)
-              .get();
-
-      // Return true if the document exists, false otherwise
+      final doc = await _firestore.collection(collection).doc(docId).get();
       return doc.exists;
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
     } catch (e) {
-      // Handle any errors that occur during the check
-      debugPrint('Error checking document existence: $e');
-      return false;
+      throw const FirestoreFailure();
     }
   }
 
-  /// Get a document with optional caching
-  /// Returns DocumentSnapshot or throws exception
-  Future<DocumentSnapshot> getDocument({
-    required String collectionPath,
+  // ========== Document Operations ==========
+  Future<String> setDocument({
+    required String collection,
+    required String docId,
+    required Map<String, dynamic> data,
+    bool merge = false, // Set true for partial updates
+  }) async {
+    try {
+      final docRef = _firestore.collection(collection).doc(docId);
+
+      await docRef.set(data, SetOptions(merge: merge));
+
+      return docRef.id;
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Future<void> updateDocument({
+    required String collection,
+    required String docId,
+    required Map<String, dynamic> updates,
+  }) async {
+    try {
+      await _firestore.collection(collection).doc(docId).update(updates);
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Future<void> deleteDocument({
+    required String collection,
+    required String docId,
+  }) async {
+    try {
+      await _firestore.collection(collection).doc(docId).delete();
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Future<Map<String, dynamic>?> getDocument({
+    required String collection,
     required String docId,
     Source source =
         Source.serverAndCache, // Default: try server first, fallback to cache
   }) async {
     try {
-      return await _firestore
-          .collection(collectionPath)
+      final doc = await _firestore
+          .collection(collection)
           .doc(docId)
           .get(GetOptions(source: source));
+      return doc.data();
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
     } catch (e) {
-      debugPrint('FirestoreService.getDocument error: $e');
-      throw Exception('Failed to get document: $e');
+      throw const FirestoreFailure();
     }
   }
 
-  /// Set/overwrite a document (auto-generate ID if docId is null)
-  /// Returns the document ID
-  Future<String> setDocument({
-    required String collectionPath,
-    String? docId,
-    required Map<String, dynamic> data,
-    bool merge = false, // Set true for partial updates
-  }) async {
-    try {
-      final docRef =
-          docId != null
-              ? _firestore.collection(collectionPath).doc(docId)
-              : _firestore.collection(collectionPath).doc();
-
-      await docRef.set(data, SetOptions(merge: merge));
-      return docRef.id;
-    } catch (e) {
-      debugPrint('FirestoreService.setDocument error: $e');
-      throw Exception('Failed to set document: $e');
-    }
-  }
-
-  /// Update specific fields in a document (does not overwrite entire document)
-  Future<void> updateDocument({
-    required String collectionPath,
+  Stream<DocumentSnapshot> streamDocument({
+    required String collection,
     required String docId,
-    required Map<String, dynamic> data,
+  }) {
+    return _firestore.collection(collection).doc(docId).snapshots().handleError(
+      (e) {
+        if (e is FirebaseException) {
+          throw FirestoreFailure.fromCode(e.code);
+        } else {
+          throw const FirestoreFailure();
+        }
+      },
+    );
+  }
+
+  // ========== Collection Operations ==========
+  Stream<QuerySnapshot> streamCollection({
+    required String collection,
+    String? orderByField,
+    bool descending = false,
+  }) {
+    Query query = _firestore.collection(collection);
+    if (orderByField != null) {
+      query = query.orderBy(orderByField, descending: descending);
+    }
+    return query.snapshots().handleError((e) {
+      if (e is FirebaseException) {
+        throw FirestoreFailure.fromCode(e.code);
+      } else {
+        throw const FirestoreFailure();
+      }
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getCollection({
+    required String collection,
   }) async {
     try {
-      await _firestore.collection(collectionPath).doc(docId).update(data);
+      final querySnapshot = await _firestore.collection(collection).get();
+      return querySnapshot.docs.map((doc) => doc.data()).toList();
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
     } catch (e) {
-      debugPrint('FirestoreService.updateDocument error: $e');
-      throw Exception('Failed to update document: $e');
+      throw const FirestoreFailure();
     }
   }
 
-  /// Delete a document
-  Future<void> deleteDocument({
-    required String collectionPath,
+  // ========== Subcollection Operations ==========
+
+  Future<List<Map<String, dynamic>>> getSubcollection({
+    required String collection,
     required String docId,
+    required String subcollection,
+    String? orderByField,
+    bool descending = false,
+    String? whereField,
+    DateTime? isLessThan,
+    int? limit,
   }) async {
     try {
-      await _firestore.collection(collectionPath).doc(docId).delete();
-    } catch (e) {
-      debugPrint('FirestoreService.deleteDocument error: $e');
-      throw Exception('Failed to delete document: $e');
-    }
-  }
+      Query query = _firestore
+          .collection(collection)
+          .doc(docId)
+          .collection(subcollection);
 
-  /// Batch delete multiple documents
-  Future<void> batchDelete({
-    required String collectionPath,
-    required List<String> docIds,
-  }) async {
-    try {
-      final batch = _firestore.batch();
-
-      for (final docId in docIds) {
-        final docRef = _firestore.collection(collectionPath).doc(docId);
-        batch.delete(docRef);
+      if (orderByField != null) {
+        query = query.orderBy(orderByField, descending: descending);
       }
 
-      await batch.commit();
-      debugPrint('Successfully deleted ${docIds.length} documents');
+      if (whereField != null) {
+        query = query.where(whereField, isLessThan: isLessThan);
+      }
+
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+      
+      final querySnapshot = await query.get();
+      return querySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      // final querySnapshot =
+      //     await _firestore
+      //         .collection(collection)
+      //         .doc(docId)
+      //         .collection(subcollection)
+      //         .get();
+      // return querySnapshot.docs.map((doc) => doc.data()).toList();
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
     } catch (e) {
-      debugPrint('Error in batch delete: $e');
-      throw Exception('Batch delete failed: $e');
+      throw const FirestoreFailure();
     }
   }
 
-  /// Delete a subcollection/document with all its nested data
-  Future<void> deleteDocumentWithSubcollections({
-    required String documentPath,
+  Future<void> addSubcollectionDocument({
+    required String collection,
+    required String docId,
+    required String subcollection,
+    required Map<String, dynamic> data,
   }) async {
-    // Note: This requires implementing recursive deletion
-    // For production use, consider Cloud Functions instead
-    throw UnimplementedError('Complex deletion requires Cloud Functions');
+    try {
+      await _firestore
+          .collection(collection)
+          .doc(docId)
+          .collection(subcollection)
+          .add(data);
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Future<void> deleteSubcollectionDocument({
+    required String collection,
+    required String docId,
+    required String subcollection,
+    required String subDocId,
+  }) async {
+    try {
+      await _firestore
+          .collection(collection)
+          .doc(docId)
+          .collection(subcollection)
+          .doc(subDocId)
+          .delete();
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Future<void> updateSubcollectionDocument({
+    required String collection,
+    required String docId,
+    required String subcollection,
+    required String subDocId,
+    required Map<String, dynamic> updates,
+  }) async {
+    try {
+      await _firestore
+          .collection(collection)
+          .doc(docId)
+          .collection(subcollection)
+          .doc(subDocId)
+          .update(updates);
+    } on FirebaseException catch (e) {
+      throw FirestoreFailure.fromCode(e.code);
+    } catch (e) {
+      throw const FirestoreFailure();
+    }
+  }
+
+  Stream<QuerySnapshot> streamSubcollection({
+    required String collection,
+    required String docId,
+    required String subcollection,
+    String? orderByField,
+    bool descending = false,
+    String? whereField,
+    DateTime? isLessThan,
+    int? limit,
+  }) {
+    Query query = _firestore
+        .collection(collection)
+        .doc(docId)
+        .collection(subcollection);
+
+    if (orderByField != null) {
+      query = query.orderBy(orderByField, descending: descending);
+    }
+
+    if (whereField != null) {
+      query = query.where(whereField, isLessThan: isLessThan);
+    }
+
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    return query.snapshots().handleError((e) {
+      if (e is FirebaseException) {
+        throw FirestoreFailure.fromCode(e.code);
+      } else {
+        throw const FirestoreFailure();
+      }
+    });
+  }
+}
+
+// Custom exception class
+class FirestoreFailure implements Exception {
+  final String message;
+
+  const FirestoreFailure([this.message = 'Firestore operation failed']);
+
+  factory FirestoreFailure.fromCode(String code) {
+    switch (code) {
+      case 'permission-denied':
+        return const FirestoreFailure('Permission denied');
+      case 'not-found':
+        return const FirestoreFailure('Document not found');
+      default:
+        return const FirestoreFailure();
+    }
   }
 }

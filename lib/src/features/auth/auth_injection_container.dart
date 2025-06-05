@@ -6,10 +6,10 @@ import 'package:dhgc_chat_app/src/features/auth/data/datasources/remote/user_rem
 import 'package:dhgc_chat_app/src/features/auth/data/datasources/remote/user_remote_datasource_impl.dart';
 import 'package:dhgc_chat_app/src/features/auth/data/repo/login_repo_impl.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/repo/login_repo.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_apple.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_email_password.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_facebook.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_google.dart';
+import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_facebook.dart';
+import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_apple.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart';
 
 Future<void> authInjectionContainer() async {
@@ -25,7 +25,7 @@ Future<void> authInjectionContainer() async {
 
   // Register the UserRemoteDatasource
   sl.registerLazySingleton<UserRemoteDatasource>(
-    () => UserRemoteDatasourceImpl(),
+    () => UserRemoteDatasourceImpl(sl()),
   );
 
   // Register the NoteRepo
@@ -38,29 +38,23 @@ Future<void> authInjectionContainer() async {
   );
 
   // Register the use cases
-  sl.registerLazySingleton<LoginWithEmailAndPasswordUsecase>(
-    () => LoginWithEmailAndPasswordUsecase(sl()),
+  sl.registerLazySingleton<LoginWithEmailAndPassword>(
+    () => LoginWithEmailAndPassword(sl()),
   );
 
-  sl.registerLazySingleton<LoginWithGoogleUsecase>(
-    () => LoginWithGoogleUsecase(sl()),
-  );
+  sl.registerLazySingleton<LoginWithGoogle>(() => LoginWithGoogle(sl()));
 
-  sl.registerLazySingleton<LoginWithFacebookUsecase>(
-    () => LoginWithFacebookUsecase(sl()),
-  );
+  sl.registerLazySingleton<LoginWithFacebook>(() => LoginWithFacebook(sl()));
 
-  sl.registerLazySingleton<LoginWithAppleUsecase>(
-    () => LoginWithAppleUsecase(sl()),
-  );
+  sl.registerLazySingleton<LoginWithApple>(() => LoginWithApple(sl()));
 
   // Register the LoginBloc
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
-      loginWithEmailAndPasswordUsecase: sl(),
-      loginWithGoogleUsecase: sl(),
-      loginWithFacebookUsecase: sl(),
-      loginWithAppleUsecase: sl(),
+      loginWithEmailAndPassword: sl(),
+      loginWithGoogle: sl(),
+      loginWithFacebook: sl(),
+      loginWithApple: sl(),
     ),
   );
 }

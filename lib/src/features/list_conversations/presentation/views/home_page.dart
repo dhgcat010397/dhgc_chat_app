@@ -180,6 +180,7 @@ class _HomePageState extends State<HomePage> {
                                   arguments: {
                                     'conversationId': "${index + 1}",
                                     'receiverId': "${index + 11}",
+                                    "user": widget.user,
                                   },
                                 );
                               },

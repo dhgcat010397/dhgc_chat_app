@@ -23,7 +23,7 @@ class AuthService {
       final searchKey = user.email?.substring(0, 1).toUpperCase() ?? '';
 
       await FirestoreService().setDocument(
-        collectionPath: 'users',
+        collection: 'users',
         docId: user.uid,
         data: {
           'uid': user.uid,

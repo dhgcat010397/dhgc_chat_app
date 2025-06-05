@@ -1,3 +1,19 @@
+buildscript {
+    val kotlinVersion = "2.1.0"
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Use double quotes and proper Kotlin DSL syntax
+        classpath("com.android.tools.build:gradle:8.3.0")
+        classpath("com.google.gms:google-services:4.3.15")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
 allprojects {
     repositories {
         google()

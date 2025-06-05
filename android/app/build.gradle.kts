@@ -8,18 +8,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-dependencies {
-    // Default Flutter dependencies
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    
-    // Add Google Play Services or Firebase here
-    implementation 'com.google.android.gms:play-services-auth:21.0.0'  // Example
-    implementation 'com.google.firebase:firebase-analytics:21.5.0'     // Example
-    
-    // Other native dependencies
-    implementation 'androidx.multidex:multidex:2.0.1'  // If using multidex
-}
-
 android {
     namespace = "com.example.dhgc_chat_app"
     compileSdk = flutter.compileSdkVersion
@@ -44,20 +32,37 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
-        dependencies {
-            classpath 'com.google.gms:google-services:4.3.15'  // For Firebase
-            classpath 'com.android.tools.build:gradle:7.3.1'   // Android Gradle Plugin
-        }
-
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    // Kotlin
+    // implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0") // Specify version directly
+    
+    // Flutter
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+    
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0")) // Recommended BOM approach
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+    }
+    
+    // Play Services
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    
+    // AndroidX
+    implementation("androidx.multidex:multidex:2.0.1")
 }
 
 flutter {

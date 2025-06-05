@@ -14,25 +14,28 @@ part "auth_event.dart";
 part 'auth_bloc.freezed.dart'; // run: flutter pub run build_runner build --delete-conflicting-outputs
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final LoginWithEmailAndPasswordUsecase loginWithEmailAndPasswordUsecase;
-  final LoginWithGoogleUsecase loginWithGoogleUsecase;
-  final LoginWithFacebookUsecase loginWithFacebookUsecase;
-  final LoginWithAppleUsecase loginWithAppleUsecase;
+  final LoginWithEmailAndPassword _loginWithEmailAndPassword;
+  final LoginWithGoogle _loginWithGoogle;
+  final LoginWithFacebook _loginWithFacebook;
+  final LoginWithApple _loginWithApple;
 
   late UserEntity? user;
 
   AuthBloc({
-    required this.loginWithEmailAndPasswordUsecase,
-    required this.loginWithGoogleUsecase,
-    required this.loginWithFacebookUsecase,
-    required this.loginWithAppleUsecase,
-  }) : super(const _Initial()) {
+    required LoginWithEmailAndPassword loginWithEmailAndPassword,
+    required LoginWithGoogle loginWithGoogle,
+    required LoginWithFacebook loginWithFacebook,
+    required LoginWithApple loginWithApple,
+  }) : _loginWithEmailAndPassword = loginWithEmailAndPassword,
+       _loginWithGoogle = loginWithGoogle,
+       _loginWithFacebook = loginWithFacebook,
+       _loginWithApple = loginWithApple,
+       super(const _Initial()) {
     on<AuthEvent>(
       (event, emit) => event.map(
         checkAuthentication: (event) => _onCheckAuthentication(emit),
         loginWithEmailAndPassword:
-            (event) =>
-                _onLoginWithEmailAndPassword(event.email, event.password, emit),
+            (event) => _onLoginWithEmailAndPassword(event, emit),
         loginWithGoogle: (event) => _onLoginWithGoogle(emit),
         loginWithFacebook: (event) => _onLoginWithFacebook(emit),
         loginWithApple: (event) => _onLoginWithApple(emit),
@@ -57,14 +60,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginWithEmailAndPassword(
-    String email,
-    String password,
+    _LoginWithEmailAndPassword event,
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
 
     try {
       // _notesList = await getNotesListUseCase.call();
+      // final email = event.email;
+      // final password = event.password;
       emit(AuthState.authenticated(user!));
     } catch (e, stackTrace) {
       emit(
@@ -81,7 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
 
     try {
-      user = await loginWithGoogleUsecase.call();
+      user = await _loginWithGoogle.call();
       emit(AuthState.authenticated(user!));
       ;
     } catch (e, stackTrace) {

@@ -40,6 +40,7 @@ class RouteGenerator {
                 (_) => ChatPage(
                   conversationId: args['conversationId'],
                   receiverId: args['receiverId'],
+                  user: args['user'],
                 ),
           );
         }

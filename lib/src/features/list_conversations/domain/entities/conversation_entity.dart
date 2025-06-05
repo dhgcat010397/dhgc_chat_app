@@ -3,8 +3,10 @@ import 'package:equatable/equatable.dart';
 class ConversationEntity extends Equatable {
   final String id; // The ID of the conversation, which is a unique identifier
   final DateTime createdAt;
-  final String ownerId; // The ID of the user who owns the conversation. In this case, the current user
-  final String receiverId; // The ID of the user with whom the conversation is held
+  final String
+  ownerId; // The ID of the user who owns the conversation. In this case, the current user
+  final String
+  receiverId; // The ID of the user with whom the conversation is held
   final String receiverName;
   final String receiverAvatar;
   final bool isOnline;
@@ -36,6 +38,27 @@ class ConversationEntity extends Equatable {
     lastMessageAt,
   ];
 
-  @override
-  bool get stringify => true;
+  ConversationEntity copyWith({
+    String? id,
+    DateTime? createdAt,
+    String? ownerId,
+    String? receiverId,
+    String? receiverName,
+    String? receiverAvatar,
+    bool? isOnline,
+    String? lastMessage,
+    DateTime? lastMessageAt,
+  }) {
+    return ConversationEntity(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      ownerId: ownerId ?? this.ownerId,
+      receiverId: receiverId ?? this.receiverId,
+      receiverName: receiverName ?? this.receiverName,
+      receiverAvatar: receiverAvatar ?? this.receiverAvatar,
+      isOnline: isOnline ?? this.isOnline,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+    );
+  }
 }
