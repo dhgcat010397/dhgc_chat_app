@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/auth_service.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/repo/login_repo.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
@@ -13,8 +13,8 @@ class UserRepoImpl implements UserRepo {
   UserRepoImpl({required this.localDatasource, required this.remoteDatasource});
 
   @override
-  Future<bool> checkUserExits(String uid, {BuildContext? context}) async {
-    return await remoteDatasource.checkUserExits(uid, context: context);
+  Future<bool> checkUserExist(String uid, {BuildContext? context}) async {
+    return await remoteDatasource.checkUserExist(uid, context: context);
   }
 
   @override

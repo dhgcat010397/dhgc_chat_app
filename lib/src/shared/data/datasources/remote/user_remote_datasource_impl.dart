@@ -15,7 +15,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   UserRemoteDatasourceImpl(this._firestoreService);
 
   @override
-  Future<bool> checkUserExits(String uid, {BuildContext? context}) async {
+  Future<bool> checkUserExist(String uid, {BuildContext? context}) async {
     try {
       final userExists = await _firestoreService.checkDocumentExists(
         collection: 'users',
@@ -188,7 +188,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
         throw ArgumentError('User ID cannot be empty');
       }
 
-      final userExits = await checkUserExits(uid);
+      final userExits = await checkUserExist(uid);
 
       if (userExits) {
         final userData = await _firestoreService.getDocument(
@@ -231,7 +231,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
         throw ArgumentError('User ID cannot be empty');
       }
 
-      final userExits = await checkUserExits(uid);
+      final userExits = await checkUserExist(uid);
 
       if (userExits) {
         final userData = await _firestoreService.getDocument(

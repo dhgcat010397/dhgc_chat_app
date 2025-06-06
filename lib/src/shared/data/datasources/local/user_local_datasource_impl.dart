@@ -1,6 +1,6 @@
 import 'package:dhgc_chat_app/src/core/helpers/shared_pref_helper.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 
 class UserLocalDatasourceImpl implements UserLocalDatasource {
   UserLocalDatasourceImpl();

@@ -1,7 +1,7 @@
 import 'package:dhgc_chat_app/src/core/services/auth_service.dart';
 import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource_impl.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource_impl.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import 'package:dhgc_chat_app/src/features/auth/data/repo/login_repo_impl.dart';
