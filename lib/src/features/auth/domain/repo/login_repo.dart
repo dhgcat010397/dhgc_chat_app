@@ -1,4 +1,4 @@
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 
 abstract class LoginRepo {
   Future<UserEntity?> loginWithEmailAndPassword(String email, String password);
