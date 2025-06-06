@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/remote/user_remote_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/data/models/user_model.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 
 class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   final FirestoreService _firestoreService;
@@ -186,36 +188,25 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
         throw ArgumentError('User ID cannot be empty');
       }
 
-      // Get document from Firestore
-      final snapshot = await _firestoreService.getDocument(
-        collection: 'users',
-        docId: uid,
-      );
+      final userExits = await checkUserExits(uid);
 
-      // Check if document exists
-      if (snapshot == null) {
+      if (userExits) {
+        final userData = await _firestoreService.getDocument(
+          collection: "users",
+          docId: uid,
+        );
+
+        final userInfo = UserModel.fromJson(userData!).toEntity();
+
+        return userInfo;
+      } else {
         throw Exception('User not found');
       }
-
-      // Convert data to typed map
-      final userData = snapshot;
-
-      final userInfo = UserEntity(
-        uid: userData['uid'],
-        username: userData['email'].split('@')[0] ?? '',
-        email: userData['email'],
-        displayName: userData['displayName'],
-        imgUrl: userData['imgUrl'],
-      );
-
-      debugPrint('✅ Fetched user info for $uid');
-
-      return userInfo;
     } on FirebaseException catch (e) {
       // Firebase-specific errors
-      debugPrint('🔥 Firebase error fetching  user: ${e.code} - ${e.message}');
+      debugPrint('🔥 Firebase error fetching user: ${e.code} - ${e.message}');
 
-      final errorMessage = ErrorHelper.showFirebaseError(e.code, 'delete');
+      final errorMessage = ErrorHelper.showFirebaseError(e.code, 'getUserInfo');
 
       throw Exception(errorMessage);
     } on PlatformException catch (e) {
@@ -229,6 +220,114 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       // Generic errors
       debugPrint('❗ Unexpected error: $e\n$stackTrace');
       throw Exception('Failed to fetch user information');
+    }
+  }
+
+  @override
+  Future<UserStatus> getStatus(String uid) async {
+    try {
+      // Input validation
+      if (uid.isEmpty) {
+        throw ArgumentError('User ID cannot be empty');
+      }
+
+      final userExits = await checkUserExits(uid);
+
+      if (userExits) {
+        final userData = await _firestoreService.getDocument(
+          collection: "users",
+          docId: uid,
+        );
+
+        // Check if lastLogin exists and compare with current time
+        if (userData!.containsKey('lastLogin')) {
+          final lastLogin = userData['lastLogin'] as Timestamp;
+          final now = DateTime.now();
+          final difference = now.difference(lastLogin.toDate()).inMinutes;
+
+          // Consider user online if last login was within 5 minutes
+          return difference <= 5 ? UserStatus.online : UserStatus.offline;
+        }
+
+        // Default to offline if no lastLogin data
+        return UserStatus.offline;
+      } else {
+        throw Exception('User not found');
+      }
+    } on FirebaseException catch (e) {
+      // Firebase-specific errors
+      debugPrint(
+        '🔥 Firebase error get user\'s status: ${e.code} - ${e.message}',
+      );
+
+      final errorMessage = ErrorHelper.showFirebaseError(
+        e.code,
+        'getUserStatus',
+      );
+
+      throw Exception(errorMessage);
+    } on PlatformException catch (e) {
+      // Mobile platform errors
+      debugPrint('📱 Platform error: ${e.code} - ${e.message}');
+      throw Exception('Device operation failed');
+    } on ArgumentError catch (e) {
+      debugPrint('❌ Invalid arguments: $e');
+      throw Exception(e.message);
+    } catch (e, stackTrace) {
+      // Generic errors
+      debugPrint('❗ Unexpected error: $e\n$stackTrace');
+      throw Exception('Failed to fetch user\'s status');
+    }
+  }
+
+  @override
+  Stream<UserStatus> getStatusStream(String uid) {
+    try {
+      // Input validation
+      if (uid.isEmpty) {
+        throw ArgumentError('User ID cannot be empty');
+      }
+
+      return _firestoreService
+          .streamDocument(collection: "users", docId: uid)
+          .map((snapshot) {
+            if (!snapshot.exists) return UserStatus.offline;
+
+            final userData = snapshot.data() as Map<String, dynamic>;
+
+            if (userData.containsKey('lastLogin')) {
+              final lastLogin = userData['lastLogin'] as Timestamp;
+              final now = DateTime.now();
+              final difference = now.difference(lastLogin.toDate()).inMinutes;
+
+              return difference <= 5 ? UserStatus.online : UserStatus.offline;
+            }
+
+            return UserStatus.offline;
+          });
+    } on FirebaseException catch (e) {
+      // Firebase-specific errors
+      debugPrint(
+        '🔥 Firebase error get user\'s status: ${e.code} - ${e.message}',
+      );
+
+      final errorMessage = ErrorHelper.showFirebaseError(
+        e.code,
+        'getUserStatus',
+      );
+
+      throw Exception(errorMessage);
+    } on PlatformException catch (e) {
+      // Mobile platform errors
+      debugPrint('📱 Platform error: ${e.code} - ${e.message}');
+      throw Exception('Device operation failed');
+    } on ArgumentError catch (e) {
+      debugPrint('❌ Invalid arguments: $e');
+      throw Exception(e.message);
+    } catch (e, stackTrace) {
+      // Generic errors
+      debugPrint('❗ Unexpected error: $e\n$stackTrace');
+      throw Exception('Failed to fetch user\'s status');
     }
   }
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_apple.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_email_password.dart';
 import 'package:dhgc_chat_app/src/features/auth/domain/usecases/login_with_facebook.dart';

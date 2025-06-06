@@ -214,12 +214,9 @@ class _ChatPageState extends State<ChatPage> {
                                 return _buildMessageItem(
                                   messageId: message.messageId,
                                   messageContent: message.text!,
-                                  isMe:
-                                      message.senderId ==
-                                      'current_user_id', // Replace with actual current user ID
+                                  isMe: message.senderId == widget.user.uid,
                                   timestamp: message.timestamp,
-                                  isOnline:
-                                      true, // You should get this from user status
+                                  isOnline: true,
                                   senderAvatar:
                                       'https://example.com/avatar.png',
                                 );
@@ -278,8 +275,7 @@ class _ChatPageState extends State<ChatPage> {
                         context.read<ChatBloc>().add(
                           ChatEvent.sendTextMessage(
                             chatroomId: widget.conversationId,
-                            senderId:
-                                'current_user_id', // Replace with actual user ID
+                            senderId: widget.user.uid,
                             text: message,
                           ),
                         );

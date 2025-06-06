@@ -1,4 +1,4 @@
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dhgc_chat_app/src/core/routes/app_routes.dart';

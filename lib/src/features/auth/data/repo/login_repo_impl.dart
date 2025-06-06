@@ -1,12 +1,13 @@
-import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
-import 'package:dhgc_chat_app/src/core/services/auth_service.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/datasources/remote/user_remote_datasource.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/repo/login_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
+import 'package:dhgc_chat_app/src/core/services/auth_service.dart';
+import 'package:dhgc_chat_app/src/features/auth/data/datasources/local/user_local_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
+import 'package:dhgc_chat_app/src/features/auth/domain/repo/login_repo.dart';
 
 class LoginRepoImpl implements LoginRepo {
   final UserLocalDatasource localDatasource;
@@ -20,10 +21,7 @@ class LoginRepoImpl implements LoginRepo {
   });
 
   @override
-  Future<UserEntity?> loginWithEmailAndPassword(
-    String email,
-    String password,
-  ) {
+  Future<UserEntity?> loginWithEmailAndPassword(String email, String password) {
     // TODO: implement loginWithUsernameAndPassword
     throw UnimplementedError();
   }
@@ -64,7 +62,7 @@ class LoginRepoImpl implements LoginRepo {
   }
 
   UserEntity _convertToEntity(User user) {
-    final username = user!.email?.split('@')[0] ?? '';
+    final username = user.email?.split('@')[0] ?? '';
 
     return UserEntity(
       uid: user.uid,
