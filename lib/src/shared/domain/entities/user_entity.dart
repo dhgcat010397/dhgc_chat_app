@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:dhgc_chat_app/src/core/utils/mappers/model_convertable.dart';
-import 'package:dhgc_chat_app/src/features/auth/data/models/user_model.dart';
+import 'package:dhgc_chat_app/src/shared/data/models/user_model.dart';
 
 class UserEntity extends Equatable
     with ModelConvertible<UserEntity, UserModel> {
