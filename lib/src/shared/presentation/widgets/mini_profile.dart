@@ -33,50 +33,46 @@ class MiniProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (context) =>
-              di.sl<UserStatusBloc>()..add(UserStatusEvent.subscribe(userId)),
-      child: Container(
-        padding: const EdgeInsets.all(4.0),
-        decoration: BoxDecoration(color: backgroundColor),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatarWidget(
-              imageUrl: userAvatar,
-              size: avatarSize,
-              uid: userId,
-            ),
-            const SizedBox(width: 10.0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    userName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: nameSize,
-                      fontWeight: FontWeight.w500,
-                      color: nameColor,
-                    ),
+    context.read<UserStatusBloc>().add(UserStatusEvent.subscribe(userId));
+    return Container(
+      padding: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(color: backgroundColor),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatarWidget(
+            imageUrl: userAvatar,
+            size: avatarSize,
+            uid: userId,
+          ),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  userName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: nameSize,
+                    fontWeight: FontWeight.w500,
+                    color: nameColor,
                   ),
-                  BlocBuilder<UserStatusBloc, UserStatusState>(
-                    builder: (context, state) {
-                      return state.maybeWhen(
-                        updated: (status) => _buildStatusText(status),
-                        orElse: () => const SizedBox.shrink(),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                ),
+                BlocBuilder<UserStatusBloc, UserStatusState>(
+                  builder: (context, state) {
+                    return state.maybeWhen(
+                      updated: (status) => _buildStatusText(status),
+                      orElse: () => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

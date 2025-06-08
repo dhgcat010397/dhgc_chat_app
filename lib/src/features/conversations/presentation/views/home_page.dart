@@ -1,3 +1,4 @@
+import 'package:dhgc_chat_app/src/shared/presentation/bloc/search_users_bloc/search_users_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _debugProviderHierarchy();
 
     _scrollController = ScrollController();
 
@@ -57,17 +59,19 @@ class _HomePageState extends State<HomePage> {
               di.sl<ConversationsBloc>()
                 ..add(ConversationsEvent.loadConversations(user.uid)),
       child: BlocListener<ConversationsBloc, ConversationsState>(
-        listener: _handleStateChanges,
+        listener: (_, state) => _handleStateChanges,
         child: Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              // Action to perform when the button is pressed
-              _showUserSearchSheet();
-            },
-            tooltip: 'New Conversation',
-            backgroundColor: backgroundColor,
-            shape: CircleBorder(side: BorderSide.none),
-            child: const Icon(Icons.add, color: Colors.white),
+          floatingActionButton: Builder(
+            builder:
+                (fabContext) => FloatingActionButton(
+                  onPressed: () {
+                    _showUserSearchSheet(fabContext);
+                  },
+                  tooltip: 'New Conversation',
+                  backgroundColor: backgroundColor,
+                  shape: CircleBorder(side: BorderSide.none),
+                  child: const Icon(Icons.add, color: Colors.white),
+                ),
           ),
           backgroundColor: backgroundColor,
           body: SafeArea(
@@ -144,7 +148,10 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: [
                         const SizedBox(height: 30.0),
-                        _buildSearchBar(),
+                        Builder(
+                          builder:
+                              (innerContext) => _buildSearchBar(innerContext),
+                        ),
                         const SizedBox(height: 20.0),
                         Expanded(
                           child: BlocBuilder<
@@ -191,7 +198,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Color(0xffececf8),
@@ -298,72 +305,90 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showUserSearchSheet() {
-    // Get the bloc before showing the bottom sheet
-  final bloc = context.read<ConversationsBloc>();
+  void _showUserSearchSheet(BuildContext context) {
+    // Get the blocs from the parent context
+    final searchUsersBloc = context.read<SearchUsersBloc>();
+    final conversationsBloc = context.read<ConversationsBloc>();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Draggable handle
-              Container(
-                margin: const EdgeInsets.only(top: 8, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header with close button
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'New Conversation',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1),
-              // Search widget
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: SearchUsersWidget(
-                    onTapSelectedUser: (userInfo) {
-                      Navigator.pop(context);
-                      bloc.add(
-                        ConversationsEvent.createNewConversation(
-                          uid: user.uid,
-                          participants: [userInfo.uid],
-                        ),
-                      );
-                    },
+      builder: (sheetContext) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: searchUsersBloc),
+            BlocProvider.value(value: conversationsBloc),
+          ],
+          child: Container(
+            height: MediaQuery.of(sheetContext).size.height,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                // Draggable handle
+                Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
-            ],
+                // Header with close button
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'New Conversation',
+                        style: Theme.of(sheetContext).textTheme.headlineSmall,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () => Navigator.pop(sheetContext),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1),
+                // Search widget
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Builder(
+                      builder:
+                          (innerContext) => SearchUsersWidget(
+                            onTapSelectedUser: (userInfo) {
+                              innerContext.read<ConversationsBloc>().add(
+                                ConversationsEvent.createNewConversation(
+                                  uid: user.uid,
+                                  participants: [userInfo.uid],
+                                ),
+                              );
+                              Navigator.pop(innerContext);
+                            },
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  void _debugProviderHierarchy() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint(
+        WidgetsBinding.instance.rootElement?.toStringDeep() ?? "No widget tree",
+      );
+    });
   }
 }

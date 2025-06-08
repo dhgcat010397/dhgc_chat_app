@@ -20,22 +20,19 @@ class SearchUsersWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => di.sl<SearchUsersBloc>(),
-      child: Column(
-        children: [
-          _SearchBar(),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _SearchResults(
-              scrollController: scrollController,
-              onTapSelectedUser: (userInfo) {
-                onTapSelectedUser?.call(userInfo);
-              },
-            ),
+    return Column(
+      children: [
+        _SearchBar(),
+        const SizedBox(height: 16),
+        Expanded(
+          child: _SearchResults(
+            scrollController: scrollController,
+            onTapSelectedUser: (userInfo) {
+              onTapSelectedUser?.call(userInfo);
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

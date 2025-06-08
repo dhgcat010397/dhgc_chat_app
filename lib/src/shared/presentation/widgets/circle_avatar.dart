@@ -21,6 +21,9 @@ class CircleAvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (uid != null) {
+      context.read<UserStatusBloc>().add(UserStatusEvent.subscribe(uid!));
+    }
     return Container(
       padding: EdgeInsets.all(2),
       decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white),
@@ -40,22 +43,16 @@ class CircleAvatarWidget extends StatelessWidget {
             child:
                 uid == null
                     ? const SizedBox.shrink()
-                    : BlocProvider(
-                      create:
-                          (context) =>
-                              di.sl<UserStatusBloc>()
-                                ..add(UserStatusEvent.subscribe(uid!)),
-                      child: BlocBuilder<UserStatusBloc, UserStatusState>(
-                        builder: (context, state) {
-                          return state.when(
-                            initial: () => const SizedBox.shrink(),
-                            loading: () => const SizedBox.shrink(),
-                            updated:
-                                (status) => _buildOnlineStatus(context, status),
-                            error: (_, __, ___) => const SizedBox.shrink(),
-                          );
-                        },
-                      ),
+                    : BlocBuilder<UserStatusBloc, UserStatusState>(
+                      builder: (context, state) {
+                        return state.when(
+                          initial: () => const SizedBox.shrink(),
+                          loading: () => const SizedBox.shrink(),
+                          updated:
+                              (status) => _buildOnlineStatus(context, status),
+                          error: (_, __, ___) => const SizedBox.shrink(),
+                        );
+                      },
                     ),
           ),
         ],

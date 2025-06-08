@@ -8,8 +8,14 @@ import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
 
 class AuthService {
-  static final AuthService _instance = AuthService._internal();
+  // final FirebaseAuth _auth = FirebaseAuth.instance;
+  // final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //       scopes: ['email', 'profile'],
+  //       clientId:
+  //           kIsWeb ? 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com' : null,
+  //     );
 
+  static final AuthService _instance = AuthService._internal();
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final FirestoreService _firestoreService;
