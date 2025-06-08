@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               // Action to perform when the button is pressed
-              _showUserSearchSheet(context);
+              _showUserSearchSheet();
             },
             tooltip: 'New Conversation',
             backgroundColor: backgroundColor,
@@ -298,7 +298,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showUserSearchSheet(BuildContext context) {
+  void _showUserSearchSheet() {
+    // Get the bloc before showing the bottom sheet
+  final bloc = context.read<ConversationsBloc>();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -347,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                   child: SearchUsersWidget(
                     onTapSelectedUser: (userInfo) {
                       Navigator.pop(context);
-                      context.read<ConversationsBloc>().add(
+                      bloc.add(
                         ConversationsEvent.createNewConversation(
                           uid: user.uid,
                           participants: [userInfo.uid],

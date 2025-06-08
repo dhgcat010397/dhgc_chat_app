@@ -8,11 +8,22 @@ import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    clientId: kIsWeb ? 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com' : null,
-  );
+  static final AuthService _instance = AuthService._internal();
+
+  final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
+  final FirestoreService _firestoreService;
+
+  factory AuthService() => _instance;
+
+  AuthService._internal()
+    : _auth = FirebaseAuth.instance,
+      _googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+        clientId:
+            kIsWeb ? 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com' : null,
+      ),
+      _firestoreService = FirestoreService();
 
   /// Creates/updates user profile in Firestore
   Future<void> _createUserProfileIfNeeded(User user) async {
@@ -22,20 +33,28 @@ class AuthService {
       /// 'searchKey' can be used for searching users by their email's first letter
       final searchKey = user.email?.substring(0, 1).toUpperCase() ?? '';
 
-      await FirestoreService().setDocument(
+      bool userExist = await _firestoreService.checkDocumentExists(
+        collection: "users",
+        docId: user.uid,
+      );
+
+      await _firestoreService.setDocument(
         collection: 'users',
         docId: user.uid,
         data: {
-          'uid': user.uid,
+          if (!userExist) ...{
+            'uid': user.uid,
+            'email': user.email,
+            'createdAt': FieldValue.serverTimestamp(),
+            'provider': 'google',
+          },
           'username': username,
           'email': user.email,
           'displayName': user.displayName,
           'displayNameLower': user.displayName?.toLowerCase(),
           'imgUrl': user.photoURL,
           'searchKey': searchKey,
-          'provider': 'google',
           'lastLogin': FieldValue.serverTimestamp(),
-          'createdAt': FieldValue.serverTimestamp(),
         },
         merge: true, // Merge with existing data if any
       );
