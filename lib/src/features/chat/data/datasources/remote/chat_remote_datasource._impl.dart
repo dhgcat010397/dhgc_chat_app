@@ -30,12 +30,12 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     try {
       return _firestoreService
           .streamSubcollection(
-            collection: 'chatrooms',
+            collection: "chatrooms",
             docId: chatroomId,
-            subcollection: 'messages',
-            orderByField: 'timestamp',
-            descending: true,
-            limit: limit,
+            subcollection: "messages",
+            queryBuilder:
+                (query) =>
+                    query.orderBy('timestamp', descending: true).limit(30),
           )
           .map(
             (snapshot) =>
@@ -62,16 +62,24 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     int limit = 20,
   }) async {
     try {
-      return (await _firestoreService.getSubcollection(
-        collection: 'chatrooms',
+      final snapshot = await _firestoreService.getSubcollection(
+        collection: "chatrooms",
         docId: chatroomId,
-        subcollection: 'messages',
-        orderByField: 'timestamp',
-        descending: true,
-        whereField: 'timestamp',
-        isLessThan: beforeTimestamp,
-        limit: limit,
-      )).map((message) => MessageModel.fromJson(message).toEntity()).toList();
+        subcollection: "messages",
+        queryBuilder:
+            (query) => query
+                .orderBy('timestamp', descending: true)
+                .where('timestamp', isLessThan: beforeTimestamp)
+                .limit(limit),
+      );
+      return snapshot.docs
+          .map(
+            (doc) =>
+                MessageModel.fromJson(
+                  doc.data() as Map<String, dynamic>,
+                ).toEntity(),
+          )
+          .toList();
     } on FirestoreFailure catch (e, stackTrace) {
       throw ChatRemoteDatasourceException(
         code: 'MESSAGE_CREATION_FAILED',
@@ -320,7 +328,7 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
         docId: chatroomId,
         subcollection: 'messages',
       );
-      for (final doc in messagesSnapshot) {
+      for (final doc in messagesSnapshot.docs) {
         await _firestoreService.deleteSubcollectionDocument(
           collection: 'chatrooms',
           docId: chatroomId,
@@ -357,16 +365,16 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     try {
       // Find the chatroom containing the message
       final chatrooms = await _firestoreService.getCollection(
-        collection: 'chatrooms',
+        path: 'chatrooms',
       );
-      for (final chatroom in chatrooms) {
+      for (final chatroom in chatrooms.docs) {
         final chatroomId = chatroom['id'];
         final messages = await _firestoreService.getSubcollection(
           collection: 'chatrooms',
           docId: chatroomId,
           subcollection: 'messages',
         );
-        for (final message in messages) {
+        for (final message in messages.docs) {
           if (message['messageId'] == messageId) {
             await _firestoreService.updateSubcollectionDocument(
               collection: 'chatrooms',

@@ -30,6 +30,7 @@ class AuthService {
           'username': username,
           'email': user.email,
           'displayName': user.displayName,
+          'displayNameLower': user.displayName?.toLowerCase(),
           'imgUrl': user.photoURL,
           'searchKey': searchKey,
           'provider': 'google',

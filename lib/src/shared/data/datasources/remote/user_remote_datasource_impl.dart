@@ -1,3 +1,4 @@
+import 'package:dhgc_chat_app/src/shared/domain/entities/search_users_result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -328,6 +329,66 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       // Generic errors
       debugPrint('❗ Unexpected error: $e\n$stackTrace');
       throw Exception('Failed to fetch user\'s status');
+    }
+  }
+
+  @override
+  Future<SearchUsersResult> searchUsersByName(
+    String query, {
+    DocumentSnapshot? lastDocument,
+    int limit = 20,
+  }) async {
+    try {
+      if (query.isEmpty) {
+        return SearchUsersResult(users: []);
+      }
+
+      final searchQuery = query.toLowerCase();
+
+      // Get all users (warning: this might be inefficient for large user bases)
+      final querySnapshot = await _firestoreService.getCollection(
+        path: 'users',
+        queryBuilder: (Query query) {
+          query = query
+              .where('displayNameLower', isGreaterThanOrEqualTo: searchQuery)
+              .where('displayNameLower', isLessThan: '${searchQuery}z')
+              .orderBy('displayNameLower')
+              .limit(limit); // Limit results for performance
+
+          if (lastDocument != null) {
+            query = query.startAfterDocument(lastDocument);
+          }
+          return query;
+        },
+      );
+
+      // Filter users locally
+      final users =
+          querySnapshot.docs
+              .map(
+                (doc) =>
+                    UserModel.fromJson(
+                      doc.data() as Map<String, dynamic>,
+                    ).toEntity(),
+              )
+              .where(
+                (user) => user.displayName!.toLowerCase().contains(searchQuery),
+              )
+              .toList();
+
+      debugPrint('🔍 Found ${users.length} users matching "$query"');
+      return SearchUsersResult(
+        users: users,
+        lastDocument:
+            querySnapshot.docs.isNotEmpty ? querySnapshot.docs.last : null,
+        hasReachedMax: users.length < limit,
+      );
+    } on FirebaseException catch (e) {
+      debugPrint('🔥 Firebase error searching users: ${e.code} - ${e.message}');
+      throw Exception(ErrorHelper.showFirebaseError(e.code, 'searchUsers'));
+    } catch (e, stackTrace) {
+      debugPrint('❗ Unexpected error searching users: $e\n$stackTrace');
+      throw Exception('Failed to search users');
     }
   }
 }

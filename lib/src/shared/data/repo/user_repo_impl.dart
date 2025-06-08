@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
 import 'package:dhgc_chat_app/src/shared/domain/repo/user_repo.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/search_users_result.dart';
 
 class UserRepoImpl implements UserRepo {
   final UserLocalDatasource localDatasource;
@@ -45,5 +46,18 @@ class UserRepoImpl implements UserRepo {
   @override
   Stream<UserStatus> getStatusStream(String uid) {
     return remoteDatasource.getStatusStream(uid);
+  }
+
+  @override
+  Future<SearchUsersResult> searchUsersByName(
+    String query, {
+    DocumentSnapshot? lastDocument,
+    int limit = 20,
+  }) async {
+    return await remoteDatasource.searchUsersByName(
+      query,
+      lastDocument: lastDocument,
+      limit: limit,
+    );
   }
 }

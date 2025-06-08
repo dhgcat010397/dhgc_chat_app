@@ -10,7 +10,7 @@ import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/password_te
 import 'package:dhgc_chat_app/src/features/auth/presentation/widgets/text_divider.dart';
 import 'package:dhgc_chat_app/src/core/utils/widgets/auth/login_via_thirdparty.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:dhgc_chat_app/src/features/list_conversations/presentation/views/home_page.dart';
+import 'package:dhgc_chat_app/src/features/conversations/presentation/views/home_page.dart';
 
 part 'login_page.dart';
 part 'register_page.dart';

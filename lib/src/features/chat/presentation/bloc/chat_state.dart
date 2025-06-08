@@ -13,7 +13,11 @@ class ChatState with _$ChatState {
     String? errorMessage, // For general errors
     String? loadMoreError, // Specific to pagination errors
   }) = _Loaded;
-  const factory ChatState.error({String? code, String? message}) = _Error;
+  const factory ChatState.error({
+    String? code,
+    String? message,
+    StackTrace? stackTrace,
+  }) = _Error;
 
   // Call-specific states
   const factory ChatState.callInProgress(CallEntity call) = _CallInProgress;

@@ -1,15 +1,15 @@
-import 'package:dhgc_chat_app/src/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
-import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
+import 'package:dhgc_chat_app/src/shared/presentation/widgets/circle_avatar.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_status.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/bubble_chat.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/message_textfield.dart';
-import 'package:dhgc_chat_app/src/features/chat/presentation/widgets/mini_profile.dart';
+import 'package:dhgc_chat_app/src/shared/presentation/widgets/mini_profile.dart';
 import 'package:dhgc_chat_app/src/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
@@ -92,7 +92,7 @@ class _ChatPageState extends State<ChatPage> {
     return BlocConsumer<ChatBloc, ChatState>(
       listener: (context, state) {
         state.whenOrNull(
-          error: (code, message) {
+          error: (code, message, _) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(message ?? 'An error occurred')),
             );
@@ -216,7 +216,6 @@ class _ChatPageState extends State<ChatPage> {
                                   messageContent: message.text!,
                                   isMe: message.senderId == widget.user.uid,
                                   timestamp: message.timestamp,
-                                  isOnline: true,
                                   senderAvatar:
                                       'https://example.com/avatar.png',
                                 );
@@ -225,7 +224,7 @@ class _ChatPageState extends State<ChatPage> {
                           );
                         },
                         error:
-                            (code, message) => Center(
+                            (code, message, _) => Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -318,7 +317,6 @@ class _ChatPageState extends State<ChatPage> {
     required String messageContent,
     required bool isMe,
     required DateTime timestamp,
-    required bool isOnline,
     String senderAvatar = "",
     double senderAvatarSize = 40.0,
   }) {
@@ -331,11 +329,7 @@ class _ChatPageState extends State<ChatPage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
-            CircleAvatarWidget(
-              imageUrl: senderAvatar,
-              size: senderAvatarSize,
-              isOnline: isOnline,
-            ),
+            CircleAvatarWidget(imageUrl: senderAvatar, size: senderAvatarSize),
             SizedBox(width: 8),
           ],
           Flexible(

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dhgc_chat_app/src/features/splash_page.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/views/auth_page.dart';
-import 'package:dhgc_chat_app/src/features/list_conversations/presentation/views/home_page.dart';
+import 'package:dhgc_chat_app/src/features/conversations/presentation/views/home_page.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

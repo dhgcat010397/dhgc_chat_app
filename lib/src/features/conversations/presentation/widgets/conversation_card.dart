@@ -1,26 +1,20 @@
 import 'package:flutter/material.dart';
 
-import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
+import 'package:intl/intl.dart';
+import 'package:dhgc_chat_app/src/shared/presentation/widgets/circle_avatar.dart';
+import 'package:dhgc_chat_app/src/features/conversations/domain/entities/conversation_entity.dart';
 
 class ConversationCard extends StatelessWidget {
   const ConversationCard({
     super.key,
-    required this.conversationId,
-    required this.receiverId,
-    required this.receiverName,
-    required this.receiverAvatar,
-    required this.lastMessage,
-    required this.lastMessageAt,
+    required this.conversation,
+    required this.uid,
     this.isOnline = true,
     this.onTap,
   });
 
-  final String conversationId;
-  final String receiverId;
-  final String receiverName;
-  final String receiverAvatar;
-  final String lastMessage;
-  final DateTime lastMessageAt;
+  final ConversationEntity conversation;
+  final String uid;
   final bool isOnline;
   final VoidCallback? onTap;
 
@@ -43,9 +37,10 @@ class ConversationCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatarWidget(
-                imageUrl: 'https://example.com/avatar.png',
+                imageUrl:
+                    conversation.avatar ?? 'https://example.com/avatar.png',
                 size: 60.0,
-                isOnline: isOnline,
+                uid: conversation.uid,
               ),
               const SizedBox(width: 20.0),
               Expanded(
@@ -54,7 +49,9 @@ class ConversationCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      receiverName,
+                      conversation.isGroup
+                          ? (conversation.groupInfo?.name ?? "")
+                          : (conversation.name ?? ""),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 18.0,
@@ -63,7 +60,7 @@ class ConversationCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      lastMessage,
+                      conversation.lastMessage,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -79,7 +76,7 @@ class ConversationCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Text(
-                  '${lastMessageAt.hour}:${lastMessageAt.minute.toString().padLeft(2, '0')}',
+                  DateFormat('HH:mm').format(conversation.lastMessageAt),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14.0,

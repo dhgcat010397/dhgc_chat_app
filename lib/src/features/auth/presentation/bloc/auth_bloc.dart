@@ -87,7 +87,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       user = await _loginWithGoogle.call();
       emit(AuthState.authenticated(user!));
-      ;
     } catch (e, stackTrace) {
       emit(
         AuthState.error(

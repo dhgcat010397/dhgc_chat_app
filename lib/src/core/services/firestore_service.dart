@@ -109,85 +109,64 @@ class FirestoreService {
     );
   }
 
+  String getDocId(String collection) =>
+      _firestore.collection(collection).doc().id;
+
   // ========== Collection Operations ==========
   Stream<QuerySnapshot> streamCollection({
-    required String collection,
-    String? orderByField,
-    bool descending = false,
+    required String path,
+    Query Function(Query query)? queryBuilder,
   }) {
-    Query query = _firestore.collection(collection);
-    if (orderByField != null) {
-      query = query.orderBy(orderByField, descending: descending);
+    Query query = _firestore.collection(path);
+    if (queryBuilder != null) {
+      query = queryBuilder(query);
     }
-    return query.snapshots().handleError((e) {
-      if (e is FirebaseException) {
-        throw FirestoreFailure.fromCode(e.code);
-      } else {
-        throw const FirestoreFailure();
-      }
-    });
+    return query.snapshots().handleError(_handleError);
   }
 
-  Future<List<Map<String, dynamic>>> getCollection({
-    required String collection,
-  }) async {
-    try {
-      final querySnapshot = await _firestore.collection(collection).get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
-    } on FirebaseException catch (e) {
-      throw FirestoreFailure.fromCode(e.code);
-    } catch (e) {
-      throw const FirestoreFailure();
+  Future<QuerySnapshot> getCollection({
+    required String path,
+    Query Function(Query query)? queryBuilder,
+  }) {
+    Query query = _firestore.collection(path);
+    if (queryBuilder != null) {
+      query = queryBuilder(query);
     }
+    return query.get().catchError(_handleError);
   }
 
   // ========== Subcollection Operations ==========
 
-  Future<List<Map<String, dynamic>>> getSubcollection({
+  Future<QuerySnapshot> getSubcollection({
     required String collection,
     required String docId,
     required String subcollection,
-    String? orderByField,
-    bool descending = false,
-    String? whereField,
-    DateTime? isLessThan,
-    int? limit,
-  }) async {
-    try {
-      Query query = _firestore
-          .collection(collection)
-          .doc(docId)
-          .collection(subcollection);
-
-      if (orderByField != null) {
-        query = query.orderBy(orderByField, descending: descending);
-      }
-
-      if (whereField != null) {
-        query = query.where(whereField, isLessThan: isLessThan);
-      }
-
-      if (limit != null) {
-        query = query.limit(limit);
-      }
-      
-      final querySnapshot = await query.get();
-      return querySnapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
-
-      // final querySnapshot =
-      //     await _firestore
-      //         .collection(collection)
-      //         .doc(docId)
-      //         .collection(subcollection)
-      //         .get();
-      // return querySnapshot.docs.map((doc) => doc.data()).toList();
-    } on FirebaseException catch (e) {
-      throw FirestoreFailure.fromCode(e.code);
-    } catch (e) {
-      throw const FirestoreFailure();
+    Query Function(Query query)? queryBuilder,
+  }) {
+    Query query = _firestore
+        .collection(collection)
+        .doc(docId)
+        .collection(subcollection);
+    if (queryBuilder != null) {
+      query = queryBuilder(query);
     }
+    return query.get().catchError(_handleError);
+  }
+
+  Stream<QuerySnapshot> streamSubcollection({
+    required String collection,
+    required String docId,
+    required String subcollection,
+    Query Function(Query query)? queryBuilder,
+  }) {
+    Query query = _firestore
+        .collection(collection)
+        .doc(docId)
+        .collection(subcollection);
+    if (queryBuilder != null) {
+      query = queryBuilder(query);
+    }
+    return query.snapshots().handleError(_handleError);
   }
 
   Future<void> addSubcollectionDocument({
@@ -250,40 +229,12 @@ class FirestoreService {
     }
   }
 
-  Stream<QuerySnapshot> streamSubcollection({
-    required String collection,
-    required String docId,
-    required String subcollection,
-    String? orderByField,
-    bool descending = false,
-    String? whereField,
-    DateTime? isLessThan,
-    int? limit,
-  }) {
-    Query query = _firestore
-        .collection(collection)
-        .doc(docId)
-        .collection(subcollection);
-
-    if (orderByField != null) {
-      query = query.orderBy(orderByField, descending: descending);
+  dynamic _handleError(dynamic error) {
+    if (error is FirebaseException) {
+      throw FirestoreFailure.fromCode(error.code);
+    } else {
+      throw const FirestoreFailure();
     }
-
-    if (whereField != null) {
-      query = query.where(whereField, isLessThan: isLessThan);
-    }
-
-    if (limit != null) {
-      query = query.limit(limit);
-    }
-
-    return query.snapshots().handleError((e) {
-      if (e is FirebaseException) {
-        throw FirestoreFailure.fromCode(e.code);
-      } else {
-        throw const FirestoreFailure();
-      }
-    });
   }
 }
 

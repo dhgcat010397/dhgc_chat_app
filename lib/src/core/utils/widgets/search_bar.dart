@@ -6,10 +6,12 @@ class ChatAppSearchBar extends StatefulWidget {
   const ChatAppSearchBar({
     super.key,
     required this.onSearch,
+    this.onClear,
     this.hintText = "",
   });
 
   final Function(String query)? onSearch;
+  final VoidCallback? onClear;
   final String hintText;
 
   @override
@@ -22,12 +24,14 @@ class _ChatAppSearchBarState extends State<ChatAppSearchBar> {
   Timer? _debounce;
   final int _debounceDuration = 1500; // milliseconds
   String _searchQuery = "";
+  bool _needClear = false;
 
   @override
   void initState() {
     super.initState();
 
     _searchController = TextEditingController();
+    _searchController.addListener(_refresh);
     _searchFocusNode = FocusNode();
   }
 
@@ -35,6 +39,7 @@ class _ChatAppSearchBarState extends State<ChatAppSearchBar> {
   void dispose() {
     _debounce?.cancel();
 
+    _searchController.removeListener(_refresh);
     _searchController.dispose();
     _searchFocusNode.dispose();
 
@@ -44,14 +49,25 @@ class _ChatAppSearchBarState extends State<ChatAppSearchBar> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: _searchController,
       decoration: InputDecoration(
         hintText: widget.hintText,
         border: InputBorder.none,
         prefixIcon: Icon(Icons.search),
+        suffixIcon:
+            _searchController.text.isEmpty
+                ? null
+                : IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    widget.onClear?.call();
+                  },
+                ),
       ),
       onChanged: (value) {
         // Handle search logic
-        _onSearchChanged(value);
+        _onSearchChanged(value.trim());
       },
     );
   }
@@ -68,5 +84,16 @@ class _ChatAppSearchBarState extends State<ChatAppSearchBar> {
         widget.onSearch?.call(_searchQuery);
       }
     });
+  }
+
+  _refresh() {
+    if (_searchController.text.isEmpty != _needClear) {
+      debugPrint("search_bar: _refresh triggered!");
+      if (mounted) {
+        setState(() {
+          _needClear = !_needClear;
+        });
+      }
+    }
   }
 }

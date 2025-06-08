@@ -1,28 +1,26 @@
 import 'dart:async';
 
-import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dhgc_chat_app/src/core/utils/enums/search_type.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 
-import 'package:dhgc_chat_app/src/features/list_conversations/domain/entities/conversation_entity.dart';
+part "search_users_state.dart";
+part "search_users_event.dart";
 
-part "list_conversations_state.dart";
-part "list_conversations_event.dart";
+part 'search_users_bloc.freezed.dart'; // run: flutter pub run build_runner build --delete-conflicting-outputs
 
-part 'list_conversations_bloc.freezed.dart'; // run: flutter pub run build_runner build --delete-conflicting-outputs
-
-class ListConversationsBloc
-    extends Bloc<ListConversationsEvent, ListConversationsState> {
+class SearchUsersBloc extends Bloc<SearchUsersEvent, SearchUsersState> {
   // final GetConversationsListUsecase getConversationsListUseCase;
   // final GetConversationDetailUsecase getConversationDetailUseCase;
   // final FilterConversationsByReceiverNameUsecase filterConversationsByReceiverNameUseCase;
   // final CreateConversationUsecase createConversationUseCase;
   // final DeleteConversationUsecase deleteConversationUseCase;
 
-  List<ConversationEntity> _conversationsList = [];
+  List<UserEntity> _users = [];
   String _cleanedQuery = "";
 
-  ListConversationsBloc(
+  SearchUsersBloc(
     // {
     // required this.getConversationsListUseCase,
     // required this.getConversationDetailUseCase,

@@ -9,7 +9,7 @@ import 'package:dhgc_chat_app/src/core/helpers/shared_pref_helper.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dhgc_chat_app/src/features/auth/presentation/views/auth_page.dart';
-import 'package:dhgc_chat_app/src/features/list_conversations/presentation/views/home_page.dart';
+import 'package:dhgc_chat_app/src/features/conversations/presentation/views/home_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

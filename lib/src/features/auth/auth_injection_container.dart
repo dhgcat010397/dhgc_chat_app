@@ -18,16 +18,6 @@ Future<void> authInjectionContainer() async {
     () => AuthService(), // Your AuthService implementation
   );
 
-  // Register the UserLocalDatasource
-  sl.registerLazySingleton<UserLocalDatasource>(
-    () => UserLocalDatasourceImpl(),
-  );
-
-  // Register the UserRemoteDatasource
-  sl.registerLazySingleton<UserRemoteDatasource>(
-    () => UserRemoteDatasourceImpl(sl()),
-  );
-
   // Register the NoteRepo
   sl.registerLazySingleton<LoginRepo>(
     () => LoginRepoImpl(
