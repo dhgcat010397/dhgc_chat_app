@@ -147,27 +147,41 @@ class _UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(10),
-      child: MiniProfile(
-        userId: user.uid,
-        userAvatar: user.imgUrl ?? "",
-        userName: _displayName(),
-        isOnline: true,
-        backgroundColor: Colors.white,
-        nameColor: Colors.black,
-        nameSize: 18.0,
-        statusSize: 14.0,
-        statusColor: Colors.white,
-        onTap: () {
-          onTap?.call(user);
-        },
+    return GestureDetector(
+      onTap: () {
+        onTap?.call(user);
+      },
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade300, // Border color
+                width: 1.0, // Border width
+              ),
+            ),
+          ),
+          width: MediaQuery.of(context).size.width,
+          child: MiniProfile(
+            userId: user.uid,
+            userAvatar: user.imgUrl ?? "",
+            userName: _displayName(),
+            backgroundColor: Colors.white,
+            nameColor: Colors.black,
+            nameSize: 18.0,
+            statusSize: 14.0,
+            statusColor: Colors.white,
+          ),
+        ),
       ),
     );
   }
 
   String _displayName() {
-    if (user.displayName == null || user.displayName!.isNotEmpty) {
+    if (user.displayName == null || user.displayName!.isEmpty) {
       return user.username;
     }
 

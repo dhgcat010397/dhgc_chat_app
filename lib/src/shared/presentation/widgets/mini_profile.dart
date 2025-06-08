@@ -1,6 +1,10 @@
+import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart' as di;
+import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
+import 'package:dhgc_chat_app/src/shared/presentation/bloc/user_status_bloc/user_status_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:dhgc_chat_app/src/shared/presentation/widgets/circle_avatar.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MiniProfile extends StatelessWidget {
   const MiniProfile({
@@ -8,81 +12,103 @@ class MiniProfile extends StatelessWidget {
     required this.userId,
     required this.userName,
     required this.userAvatar,
-    required this.isOnline,
     this.backgroundColor = AppColors.primaryColor,
     this.avatarSize = 40.0,
     this.nameSize = 16.0,
     this.statusSize = 12.0,
     this.nameColor = Colors.white,
     this.statusColor = Colors.white,
-    this.onTap,
   });
 
   final String userId;
   final String userName;
   final String userAvatar;
-  final bool isOnline;
   final Color backgroundColor;
   final double? nameSize;
   final double? statusSize;
   final Color? nameColor;
   final Color? statusColor;
   final double avatarSize;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onTap?.call(),
-      child: Material(
-        child: Container(
-          padding: const EdgeInsets.all(4.0),
-          decoration: BoxDecoration(color: backgroundColor),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatarWidget(
-                imageUrl: userAvatar,
-                size: avatarSize,
-                uid: userId,
-              ),
-              const SizedBox(width: 10.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      userName,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: nameSize,
-                        fontWeight: FontWeight.w500,
-                        color: nameColor,
-                      ),
+    return BlocProvider(
+      create:
+          (context) =>
+              di.sl<UserStatusBloc>()..add(UserStatusEvent.subscribe(userId)),
+      child: Container(
+        padding: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(color: backgroundColor),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatarWidget(
+              imageUrl: userAvatar,
+              size: avatarSize,
+              uid: userId,
+            ),
+            const SizedBox(width: 10.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    userName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: nameSize,
+                      fontWeight: FontWeight.w500,
+                      color: nameColor,
                     ),
-                    Text(
-                      _receiverStatus,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: statusSize,
-                        fontWeight: FontWeight.w300,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  BlocBuilder<UserStatusBloc, UserStatusState>(
+                    builder: (context, state) {
+                      return state.maybeWhen(
+                        updated: (status) => _buildStatusText(status),
+                        orElse: () => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String get _receiverStatus {
-    // Logic to display online/offline status
-    return isOnline ? 'Online' : 'Offline';
+  Widget _buildStatusText(UserStatus status) {
+    // Logic to display status
+    return Text(
+      status.name,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: statusSize,
+        fontWeight: FontWeight.w300,
+        color: _getStatusColor(status),
+      ),
+    );
+  }
+
+  Color _getStatusColor(UserStatus status) {
+    final Color color;
+
+    switch (status) {
+      case UserStatus.online:
+        color = Colors.green;
+      case UserStatus.offline:
+        color = Colors.grey[500]!;
+      case UserStatus.away:
+        color = Colors.blueAccent;
+      case UserStatus.invisible:
+        color = Colors.grey[200]!;
+      case UserStatus.doNotDisturb:
+        color = Colors.red;
+    }
+
+    return color;
   }
 }

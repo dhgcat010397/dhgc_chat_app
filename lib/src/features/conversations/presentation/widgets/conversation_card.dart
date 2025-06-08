@@ -23,13 +23,17 @@ class ConversationCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap?.call(),
       child: Material(
-        elevation: 3.0,
-        // borderRadius: BorderRadius.circular(10.0),
+        color: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
             color: Colors.white,
-            // borderRadius: BorderRadius.circular(10.0),
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade300, // Border color
+                width: 1.0, // Border width
+              ),
+            ),
           ),
           width: MediaQuery.of(context).size.width,
           child: Row(

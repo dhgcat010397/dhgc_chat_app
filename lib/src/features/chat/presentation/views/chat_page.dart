@@ -114,7 +114,6 @@ class _ChatPageState extends State<ChatPage> {
               userId: widget.receiverId,
               userName: "User ${widget.receiverId}",
               userAvatar: 'https://example.com/avatar.png',
-              isOnline: true,
               avatarSize: 40.0,
             ),
             backgroundColor: AppColors.primaryColor,
