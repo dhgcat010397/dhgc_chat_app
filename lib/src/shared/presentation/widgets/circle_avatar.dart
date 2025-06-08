@@ -48,11 +48,11 @@ class CircleAvatarWidget extends StatelessWidget {
                       child: BlocBuilder<UserStatusBloc, UserStatusState>(
                         builder: (context, state) {
                           return state.when(
-                            initial: () => const SizedBox(),
-                            loading: () => const SizedBox(),
+                            initial: () => const SizedBox.shrink(),
+                            loading: () => const SizedBox.shrink(),
                             updated:
                                 (status) => _buildOnlineStatus(context, status),
-                            error: (_, __, ___) => const SizedBox(),
+                            error: (_, __, ___) => const SizedBox.shrink(),
                           );
                         },
                       ),
@@ -69,7 +69,7 @@ class CircleAvatarWidget extends StatelessWidget {
           width: size * 0.25,
           height: size * 0.25,
           decoration: BoxDecoration(
-            color: Colors.green,
+            color: _getStatusColor(status),
             shape: BoxShape.circle,
             border: Border.all(
               color: Theme.of(context).scaffoldBackgroundColor,
@@ -78,5 +78,24 @@ class CircleAvatarWidget extends StatelessWidget {
           ),
         )
         : const SizedBox.shrink();
+  }
+
+  Color _getStatusColor(UserStatus status) {
+    final Color color;
+
+    switch (status) {
+      case UserStatus.online:
+        color = Colors.green;
+      case UserStatus.offline:
+        color = Colors.grey[500]!;
+      case UserStatus.away:
+        color = Colors.blueAccent;
+      case UserStatus.invisible:
+        color = Colors.grey[200]!;
+      case UserStatus.doNotDisturb:
+        color = Colors.red;
+    }
+
+    return color;
   }
 }

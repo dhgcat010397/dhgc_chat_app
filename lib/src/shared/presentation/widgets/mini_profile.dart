@@ -1,4 +1,5 @@
 import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart' as di;
+import 'package:dhgc_chat_app/src/core/utils/extensions/string_extension.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
 import 'package:dhgc_chat_app/src/shared/presentation/bloc/user_status_bloc/user_status_bloc.dart';
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class MiniProfile extends StatelessWidget {
   Widget _buildStatusText(UserStatus status) {
     // Logic to display status
     return Text(
-      status.name,
+      status.name.capitalize(),
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: statusSize,
