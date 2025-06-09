@@ -159,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                             ConversationsState
                           >(
                             builder: (context, state) {
-                              return _buildContent(state);
+                              return _buildContent(context, state);
                             },
                           ),
                         ),
@@ -218,26 +218,49 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildContent(ConversationsState state) {
+  Widget _buildContent(BuildContext context, ConversationsState state) {
     return state.when(
       initial: () => const Center(child: CircularProgressIndicator()),
       loading: () => const Center(child: CircularProgressIndicator()),
       loaded:
-          (conversations, hasReachedMax, _) =>
-              _buildConversationList(conversations, hasReachedMax),
+          (conversations, hasReachedMax, _) => Builder(
+            builder: (innerContext) {
+              return _buildConversationList(
+                innerContext,
+                conversations,
+                hasReachedMax,
+              );
+            },
+          ),
       loadingMore:
-          (conversations, hasReachedMax, _) => _buildConversationList(
-            conversations,
-            hasReachedMax,
-            isLoadingMore: true,
+          (conversations, hasReachedMax, _) => Builder(
+            builder: (innerContext) {
+              return _buildConversationList(
+                innerContext,
+                conversations,
+                hasReachedMax,
+                isLoadingMore: true,
+              );
+            },
           ),
       searchResults:
-          (conversations) => _buildConversationList(conversations, true),
+          (conversations) => Builder(
+            builder: (innerContext) {
+              return _buildConversationList(innerContext, conversations, true);
+            },
+          ),
       conversationCreated:
-          (conversation) => _buildConversationList([conversation], true),
+          (conversation) => Builder(
+            builder: (innerContext) {
+              return _buildConversationList(innerContext, [conversation], true);
+            },
+          ),
       conversationDeleted:
-          (conversationId, conversations) =>
-              _buildConversationList(conversations, true),
+          (conversationId, conversations) => Builder(
+            builder: (innerContext) {
+              return _buildConversationList(innerContext, conversations, true);
+            },
+          ),
       error:
           (code, message, trackStrace) =>
               Center(child: Text('Error: $message')),
@@ -245,6 +268,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildConversationList(
+    BuildContext context,
     List<ConversationEntity> conversations,
     bool hasReachedMax, {
     bool isLoadingMore = false,
@@ -285,7 +309,7 @@ class _HomePageState extends State<HomePage> {
           final conversation = conversations[index];
           return ConversationCard(
             conversation: conversation,
-            onTap: () => _openChat(conversation),
+            onTap: () => _openChat(context, conversation),
             uid: conversation.uid!,
           );
         },
@@ -293,7 +317,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _openChat(ConversationEntity conversation) {
+  void _openChat(BuildContext context, ConversationEntity conversation) {
     Navigator.pushNamed(
       context,
       AppRoutes.chat,
