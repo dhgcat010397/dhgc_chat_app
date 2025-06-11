@@ -55,6 +55,7 @@ app.*.map.json
 .flutter-plugins-dependencies
 
 .vscode/
+.idx/
 
 # flutter generate files and folders
 *.g.dart
