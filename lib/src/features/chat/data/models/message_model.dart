@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_status.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_entity.dart';
@@ -9,9 +9,11 @@ class MessageModel extends Equatable
     with EntityConvertible<MessageModel, MessageEntity> {
   final String messageId;
   final String senderId;
+  final String? senderName;
+  final String? senderAvatar;
   final String? text;
   final List<String>? imageUrls;
-  final DateTime timestamp;
+  final DateTime? timestamp;
   final MessageType type;
   final String? callId;
   final CallStatus? callStatus;
@@ -20,6 +22,8 @@ class MessageModel extends Equatable
   const MessageModel({
     required this.messageId,
     required this.senderId,
+    required this.senderName,
+    required this.senderAvatar,
     this.text,
     this.imageUrls,
     required this.timestamp,
@@ -33,21 +37,20 @@ class MessageModel extends Equatable
     return MessageModel(
       messageId: json['messageId'] as String,
       senderId: json['senderId'] as String,
-      text: json['text'] as String?,
+      senderName: json['senderName'] as String? ?? "",
+      senderAvatar: json['senderAvatar'] as String? ?? "",
+      text: json['text'] as String? ?? "",
       imageUrls: (json['imageUrls'] as List<dynamic>?)?.cast<String>(),
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: (json['timestamp'] as Timestamp?)?.toDate(),
       type: MessageType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
+        (e) => e.name == json['type'],
         orElse: () => MessageType.text,
       ),
-      callId: json['callId'] as String?,
-      callStatus:
-          json['callStatus'] != null
-              ? CallStatus.values.firstWhere(
-                (e) => e.toString().split('.').last == json['callStatus'],
-                orElse: () => CallStatus.rejected,
-              )
-              : null,
+      callId: json['callId'] as String? ?? "",
+      callStatus: CallStatus.values.firstWhere(
+        (e) => e.name == json['callStatus'],
+        orElse: () => CallStatus.rejected,
+      ),
       isSeen: json['isSeen'] as bool? ?? false,
     );
   }
@@ -56,9 +59,11 @@ class MessageModel extends Equatable
     return {
       'messageId': messageId,
       'senderId': senderId,
+      'senderName': senderName,
+      'senderAvatar': senderAvatar,
       'text': text,
       'imageUrls': imageUrls,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp?.toIso8601String(),
       'type': type.toString().split('.').last,
       'callId': callId,
       'callStatus': callStatus?.toString().split('.').last,
@@ -70,6 +75,8 @@ class MessageModel extends Equatable
   List<Object?> get props => [
     messageId,
     senderId,
+    senderName,
+    senderAvatar,
     text,
     imageUrls,
     timestamp,
@@ -84,6 +91,8 @@ class MessageModel extends Equatable
     return MessageEntity(
       messageId: messageId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       text: text,
       imageUrls: imageUrls,
       timestamp: timestamp,
@@ -97,6 +106,8 @@ class MessageModel extends Equatable
   MessageModel copyWith({
     String? messageId,
     String? senderId,
+    String? senderName,
+    String? senderAvatar,
     String? text,
     List<String>? imageUrls,
     DateTime? timestamp,
@@ -108,6 +119,8 @@ class MessageModel extends Equatable
     return MessageModel(
       messageId: messageId ?? this.messageId,
       senderId: senderId ?? this.senderId,
+      senderName: senderName ?? this.senderName,
+      senderAvatar: senderAvatar ?? this.senderAvatar,
       text: text ?? this.text,
       imageUrls: imageUrls ?? this.imageUrls,
       timestamp: timestamp ?? this.timestamp,

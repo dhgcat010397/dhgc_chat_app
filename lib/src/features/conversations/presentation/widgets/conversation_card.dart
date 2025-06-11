@@ -21,7 +21,9 @@ class ConversationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap?.call(),
+      onTap: () {
+        onTap?.call();
+      },
       child: Material(
         color: Colors.transparent,
         child: Container(
@@ -38,17 +40,17 @@ class ConversationCard extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatarWidget(
-                imageUrl:
-                    conversation.avatar ?? 'https://example.com/avatar.png',
+                imageUrl: conversation.avatar ?? "",
                 size: 60.0,
                 uid: conversation.uid,
               ),
               const SizedBox(width: 20.0),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -12,6 +12,7 @@ abstract class ConversationsEvent with _$ConversationsEvent {
     required String uid,
     required List<String> participants,
   }) = _CreateNewConversation;
+  const factory ConversationsEvent.updateConversation(ConversationEntity conversation) = _UpdateConversation;
   const factory ConversationsEvent.deleteConversation(String conversationId) =
       _DeleteConversation;
   const factory ConversationsEvent.resetSearch() = _ResetSearch;

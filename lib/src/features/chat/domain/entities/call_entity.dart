@@ -11,7 +11,7 @@ class CallEntity extends Equatable
   final CallType callType; // voice or video
   final String callerId;
   final List<String> participants;
-  final DateTime startTime;
+  final DateTime? startTime;
   final DateTime? endTime;
   final CallStatus status; // calling, ongoing, missed, ended, rejected
   final Duration? duration;

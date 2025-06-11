@@ -58,16 +58,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        super(const ChatState.initial()) {
     on<ChatEvent>(
       (event, emit) => event.map(
-        loadMessages: (e) => _onLoadMessages(e, emit),
-        loadMoreMessages: (e) => _onLoadMoreMessages(e, emit),
-        messageReceived: (e) => _onMessageReceived(e, emit),
-        sendTextMessage: (e) => _onSendTextMessage(e, emit),
-        sendImageMessage: (e) => _onSendImageMessage(e, emit),
-        messageSeen: (e) => _onMessageSeen(e, emit),
-        typingStarted: (e) => _onTypingStarted(e, emit),
-        typingEnded: (e) => _onTypingEnded(e, emit),
-        startCall: (e) => _onStartCall(e, emit),
-        endCall: (e) => _onEndCall(e, emit),
+        loadMessages: (event) => _onLoadMessages(event, emit),
+        loadMoreMessages: (event) => _onLoadMoreMessages(event, emit),
+        messageReceived: (event) => _onMessageReceived(event, emit),
+        // messagesUpdated: (event) => _onMessagesUpdated(event, emit),
+        sendTextMessage: (event) => _onSendTextMessage(event, emit),
+        sendImageMessage: (event) => _onSendImageMessage(event, emit),
+        messageSeen: (event) => _onMessageSeen(event, emit),
+        typingStarted: (event) => _onTypingStarted(event, emit),
+        typingEnded: (event) => _onTypingEnded(event, emit),
+        startCall: (event) => _onStartCall(event, emit),
+        endCall: (event) => _onEndCall(event, emit),
       ),
     );
   }
@@ -89,7 +90,24 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       _messagesSubscription = _loadMessages
           .call(event.chatroomId, _initialBatchSize)
           .listen((messages) {
-            add(ChatEvent.messageReceived(messages.last));
+            final currentState = state;
+            if (currentState is _Loaded) {
+              // Find new messages not already in the state
+              final existingIds =
+                  currentState.messages.map((m) => m.messageId).toSet();
+              final newMessages =
+                  messages
+                      .where((m) => !existingIds.contains(m.messageId))
+                      .toList();
+
+              if (newMessages.isNotEmpty) {
+                // Add only new messages to the state
+                add(ChatEvent.messageReceived(newMessages));
+              }
+            } else {
+              // For initial load or if state is not loaded, just replace
+              add(ChatEvent.messageReceived(messages));
+            }
           });
 
       // Initial load
@@ -120,7 +138,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         // 3. Fetch older messages from repository
         final olderMessages = await _loadMoreMessages.call(
           chatroomId: event.chatroomId,
-          beforeTimestamp: oldestMessage,
+          beforeTimestamp: oldestMessage!,
           limit: _paginationBatchSize,
         );
 
@@ -161,11 +179,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     final currentState = state;
     if (currentState is _Loaded) {
-      final updatedMessages = List<MessageEntity>.from(currentState.messages)
-        ..add(event.message);
+      // Combine current messages with new ones, avoiding duplicates
+      final existingIds = currentState.messages.map((m) => m.messageId).toSet();
+      final updatedMessages = [
+        ...event.messages.where((m) => !existingIds.contains(m.messageId)),
+        ...currentState.messages,
+      ];
       emit(currentState.copyWith(messages: updatedMessages));
+    } else {
+      emit(ChatState.loaded(messages: event.messages));
     }
   }
+
+  // Future<void> _onMessagesUpdated(
+  //   _MessagesUpdated event,
+  //   Emitter<ChatState> emit,
+  // ) async {
+  //   final currentState = state;
+  //   if (currentState is _Loaded) {
+  //     emit(currentState.copyWith(messages: event.messages));
+  //   }
+  // }
 
   Future<void> _onSendTextMessage(
     _SendTextMessage event,
@@ -175,10 +209,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (currentState is _Loaded) {
       try {
         // In a real app, you'd get the senderId from auth or user repository
-        const senderId = 'current_user_id'; // Replace with actual user ID
         await _sendTextMessage.call(
           chatroomId: event.chatroomId,
-          senderId: senderId,
+          senderId: event.senderId,
+          senderName: event.senderName,
+          senderAvatar: event.senderAvatar,
           text: event.text,
         );
       } catch (e) {
@@ -195,10 +230,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (currentState is _Loaded) {
       try {
         // In a real app, you'd get the senderId from auth or user repository
-        final senderId = event.senderId; // Replace with actual user ID
         await _sendImageMessage.call(
           chatroomId: event.chatroomId,
-          senderId: senderId,
+          senderId: event.senderId,
+          senderName: event.senderName,
+          senderAvatar: event.senderAvatar,
           imagePaths: event.imagePaths,
         );
       } catch (e) {
@@ -212,7 +248,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (currentState is _Loaded) {
       try {
         // In a real app, you'd get the callerId from auth or user repository
-        const callerId = 'current_user_id'; // Replace with actual user ID
+        final callerId = event.callerId; // Replace with actual user ID
         // You'd also need to get participants from somewhere
         const participants = ['participant1_id', 'participant2_id'];
 
@@ -259,7 +295,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final call = CallEntity(
           callId: event.callId,
           // chatroomId: event.chatroomId,
-          callerId: 'current_user_id', // Replace with actual user ID
+          callerId: event.callerId, // Replace with actual user ID
           callType: CallType.voice, // This should come from the ongoing call
           participants: const [], // This should come from the ongoing call
           status: event.callStatus,

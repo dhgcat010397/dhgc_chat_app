@@ -38,8 +38,7 @@ class RouteGenerator {
           return MaterialPageRoute(
             builder:
                 (_) => ChatPage(
-                  conversationId: args['conversationId'],
-                  receiverId: args['receiverId'],
+                  conversation: args['conversation'],
                   user: args['user'],
                 ),
           );

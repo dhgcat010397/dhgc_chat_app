@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_status.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_type.dart';
 import 'package:dhgc_chat_app/src/core/utils/mappers/entity_convertable.dart';
@@ -11,7 +11,7 @@ class CallModel extends Equatable
   final CallType callType; // voice or video
   final String callerId;
   final List<String> participants;
-  final DateTime startTime;
+  final DateTime? startTime;
   final DateTime? endTime;
   final CallStatus status; // ongoing, missed, ended...
   final int? durationMillis;
@@ -30,16 +30,19 @@ class CallModel extends Equatable
   factory CallModel.fromJson(Map<String, dynamic> json) {
     return CallModel(
       callId: json['callId'] as String,
-      callType: CallType.values.firstWhere((e) => e.name == json['callType']),
+      callType: CallType.values.firstWhere(
+        (e) => e.name == json['callType'],
+        orElse: () => CallType.voice,
+      ),
       callerId: json['callerId'] as String,
       participants: List<String>.from(json['participants'] as List),
-      startTime: DateTime.parse(json['startTime'] as String),
-      endTime:
-          json['endTime'] != null
-              ? DateTime.parse(json['endTime'] as String)
-              : null,
-      status: CallStatus.values.firstWhere((e) => e.name == json['status']),
-      durationMillis: json['durationMillis'] as int?,
+      startTime: (json['timestamp'] as Timestamp?)?.toDate(),
+      endTime: (json['timestamp'] as Timestamp?)?.toDate(),
+      status: CallStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => CallStatus.rejected,
+      ),
+      durationMillis: json['durationMillis'] as int? ?? 0,
     );
   }
 
@@ -49,7 +52,7 @@ class CallModel extends Equatable
       'callType': callType.name,
       'callerId': callerId,
       'participants': participants,
-      'startTime': startTime.toIso8601String(),
+      'startTime': startTime?.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
       'status': status.name,
       'durationMillis': durationMillis,

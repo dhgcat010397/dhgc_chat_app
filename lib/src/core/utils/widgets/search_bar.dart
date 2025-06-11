@@ -61,6 +61,7 @@ class _ChatAppSearchBarState extends State<ChatAppSearchBar> {
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     _searchController.clear();
+                    _searchQuery = '';
                     widget.onClear?.call();
                   },
                 ),

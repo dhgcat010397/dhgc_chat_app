@@ -13,11 +13,15 @@ abstract class ChatRepo {
   Future<void> sendTextMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required String text,
   });
   Future<void> sendImageMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required List<String> imagePaths,
   });
   Future<void> markMessageAsSeen(String messageId);

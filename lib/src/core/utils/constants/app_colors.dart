@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 class AppColors {
+  AppColors._();
+
   static const primaryColor = Color(0xff703eff); // Purple
 
   // static const google = Color(0xffdb4437); // Red

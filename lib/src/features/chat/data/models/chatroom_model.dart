@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/chatroom_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/data/models/call_model.dart';
@@ -48,37 +47,25 @@ class ChatroomModel extends Equatable
     return ChatroomModel(
       chatroomId: json['chatroomId'] as String,
       participants: List<String>.from(json['participants'] ?? []),
-      lastMessage: json['lastMessage'] as String?,
-      lastMessageSenderId: json['lastMessageSenderId'] as String?,
-      lastMessageTime:
-          json['lastMessageTime'] != null
-              ? (json['lastMessageTime'] is Timestamp
-                  ? (json['lastMessageTime'] as Timestamp).toDate()
-                  : DateTime.parse(json['lastMessageTime']))
-              : null,
+      lastMessage: json['lastMessage'] as String? ?? "",
+      lastMessageSenderId: json['lastMessageSenderId'] as String? ?? "",
+      lastMessageTime: (json['lastMessageTime'] as Timestamp?)?.toDate(),
       lastReadTime:
           json['lastReadTime'] != null
               ? (json['lastReadTime'] as Map<String, dynamic>).map(
-                (key, value) => MapEntry(
-                  key,
-                  value is Timestamp ? value.toDate() : DateTime.parse(value),
-                ),
+                (key, value) => MapEntry(key, value?.toDate()),
               )
               : null,
-      lastMessageType:
-          json['lastMessageType'] != null
-              ? MessageType.values.firstWhere(
-                (e) => e.toString() == 'MessageType.${json['lastMessageType']}',
-              )
-              : null,
-      adminId: json['adminId'] as String?,
+      lastMessageType: MessageType.values.firstWhere(
+        (e) => e.name == json['lastMessageType'],
+        orElse: () => MessageType.text,
+      ),
+      adminId: json['adminId'] as String? ?? "",
       chatroomName: json['chatroomName'] as String? ?? "",
-      chatroomType:
-          json['chatroomType'] != null
-              ? ChatroomType.values.firstWhere(
-                (e) => e.toString() == 'ChatroomType.${json['chatroomType']}',
-              )
-              : ChatroomType.private,
+      chatroomType: ChatroomType.values.firstWhere(
+        (e) => e.name == json['chatroomType'],
+        orElse: () => ChatroomType.private,
+      ),
       ongoingCall:
           json['ongoingCall'] != null
               ? CallModel.fromJson(json['ongoingCall'] as Map<String, dynamic>)

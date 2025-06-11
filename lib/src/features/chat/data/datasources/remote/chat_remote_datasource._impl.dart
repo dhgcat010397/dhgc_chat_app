@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:uuid/uuid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
 import 'package:dhgc_chat_app/src/core/services/fstorage_service.dart';
+import 'package:dhgc_chat_app/src/core/utils/constants/firestore_constants.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_status.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/call_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
@@ -30,9 +30,9 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     try {
       return _firestoreService
           .streamSubcollection(
-            collection: "chatrooms",
+            collection: FirestoreConstants.conversations,
             docId: chatroomId,
-            subcollection: "messages",
+            subcollection: FirestoreConstants.messages,
             queryBuilder:
                 (query) =>
                     query.orderBy('timestamp', descending: true).limit(30),
@@ -63,9 +63,9 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
   }) async {
     try {
       final snapshot = await _firestoreService.getSubcollection(
-        collection: "chatrooms",
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: "messages",
+        subcollection: FirestoreConstants.messages,
         queryBuilder:
             (query) => query
                 .orderBy('timestamp', descending: true)
@@ -93,26 +93,31 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
   Future<void> sendTextMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required String text,
   }) async {
     try {
       final messageId = _uuid.v4();
-      await _firestoreService.setDocument(
-        collection: 'chatrooms',
+      await _firestoreService.updateDocument(
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        data: {
+        updates: {
           'lastMessage': text,
           'lastMessageTime': FieldValue.serverTimestamp(),
           'lastMessageType': MessageType.text.name,
         },
       );
+      
       await _firestoreService.addSubcollectionDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: 'messages',
+        subcollection: FirestoreConstants.messages,
         data: {
           'messageId': messageId,
           'senderId': senderId,
+          'senderName': senderName,
+          'senderAvatar': senderAvatar,
           'text': text,
           'timestamp': FieldValue.serverTimestamp(),
           'type': MessageType.text.name,
@@ -132,6 +137,8 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
   Future<void> sendImageMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required List<String> imagePaths,
   }) async {
     final messageId = _uuid.v4();
@@ -158,7 +165,7 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
       }
 
       await _firestoreService.setDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
         data: {
           'lastMessage': '📷 ${imageUrls.length} image(s)',
@@ -167,12 +174,14 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
         },
       );
       await _firestoreService.addSubcollectionDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: 'messages',
+        subcollection: FirestoreConstants.messages,
         data: {
           'messageId': messageId,
           'senderId': senderId,
+          'senderName': senderName,
+          'senderAvatar': senderAvatar,
           'imageUrls': imageUrls,
           'timestamp': FieldValue.serverTimestamp(),
           'type': MessageType.image.name,
@@ -219,16 +228,16 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
 
       // ===== 2. Update Chatroom with Ongoing Call =====
       await _firestoreService.updateDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
         updates: {'ongoingCall': callData},
       );
 
       // ===== 3. Add System Message =====
       await _firestoreService.addSubcollectionDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: 'messages',
+        subcollection: FirestoreConstants.messages,
         data: {
           'messageId': _uuid.v4(),
           'senderId': 'system',
@@ -277,7 +286,7 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
 
       // ===== 2. Clear Ongoing Call in Chatroom =====
       await _firestoreService.updateDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
         updates: {'ongoingCall': FieldValue.delete()},
       );
@@ -291,9 +300,9 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
               : 'Call ended';
 
       await _firestoreService.addSubcollectionDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: 'messages',
+        subcollection: FirestoreConstants.messages,
         data: {
           'messageId': _uuid.v4(),
           'senderId': 'system',
@@ -324,22 +333,22 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     try {
       // Delete all messages in the subcollection
       final messagesSnapshot = await _firestoreService.getSubcollection(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
-        subcollection: 'messages',
+        subcollection: FirestoreConstants.messages,
       );
       for (final doc in messagesSnapshot.docs) {
         await _firestoreService.deleteSubcollectionDocument(
-          collection: 'chatrooms',
+          collection: FirestoreConstants.conversations,
           docId: chatroomId,
-          subcollection: 'messages',
-          subDocId: doc['id'],
+          subcollection: FirestoreConstants.messages,
+          subDocId: doc.id,
         );
       }
 
       // Delete the chatroom document itself
       await _firestoreService.deleteDocument(
-        collection: 'chatrooms',
+        collection: FirestoreConstants.conversations,
         docId: chatroomId,
       );
 
@@ -365,22 +374,22 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
     try {
       // Find the chatroom containing the message
       final chatrooms = await _firestoreService.getCollection(
-        path: 'chatrooms',
+        path: FirestoreConstants.conversations,
       );
       for (final chatroom in chatrooms.docs) {
-        final chatroomId = chatroom['id'];
+        final chatroomId = chatroom.id;
         final messages = await _firestoreService.getSubcollection(
-          collection: 'chatrooms',
+          collection: FirestoreConstants.conversations,
           docId: chatroomId,
-          subcollection: 'messages',
+          subcollection: FirestoreConstants.messages,
         );
         for (final message in messages.docs) {
           if (message['messageId'] == messageId) {
             await _firestoreService.updateSubcollectionDocument(
-              collection: 'chatrooms',
+              collection: FirestoreConstants.conversations,
               docId: chatroomId,
-              subcollection: 'messages',
-              subDocId: message['id'],
+              subcollection: FirestoreConstants.messages,
+              subDocId: message.id,
               updates: {'isSeen': true},
             );
             return;

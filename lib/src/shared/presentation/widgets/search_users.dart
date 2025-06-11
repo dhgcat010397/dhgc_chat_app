@@ -1,11 +1,11 @@
+import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart' as di;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart' as di;
 import 'package:dhgc_chat_app/src/core/utils/extensions/string_extension.dart';
+import 'package:dhgc_chat_app/src/core/utils/widgets/search_bar.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/shared/presentation/widgets/mini_profile.dart';
-import 'package:dhgc_chat_app/src/core/utils/widgets/search_bar.dart';
 import 'package:dhgc_chat_app/src/shared/presentation/bloc/search_users_bloc/search_users_bloc.dart';
 
 class SearchUsersWidget extends StatelessWidget {
@@ -20,19 +20,22 @@ class SearchUsersWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _SearchBar(),
-        const SizedBox(height: 16),
-        Expanded(
-          child: _SearchResults(
-            scrollController: scrollController,
-            onTapSelectedUser: (userInfo) {
-              onTapSelectedUser?.call(userInfo);
-            },
+    return BlocProvider(
+      create: (context) => di.sl<SearchUsersBloc>(),
+      child: Column(
+        children: [
+          _SearchBar(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _SearchResults(
+              scrollController: scrollController,
+              onTapSelectedUser: (userInfo) {
+                onTapSelectedUser?.call(userInfo);
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -167,6 +170,7 @@ class _UserCard extends StatelessWidget {
             userAvatar: user.imgUrl ?? "",
             userName: _displayName(),
             backgroundColor: Colors.white,
+            avatarSize: 60.0,
             nameColor: Colors.black,
             nameSize: 18.0,
             statusSize: 14.0,

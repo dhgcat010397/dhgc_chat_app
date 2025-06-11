@@ -32,6 +32,7 @@ class ConversationsBloc extends Bloc<ConversationsEvent, ConversationsState> {
         loadMoreConversations: (event) => _onLoadMoreConversations(event, emit),
         searchConversations: (event) => _onSearchConversations(event, emit),
         createNewConversation: (event) => _onCreateNewConversation(event, emit),
+        updateConversation: (event) => _onUpdateConversation(event, emit),
         deleteConversation: (event) => _onDeleteConversation(event, emit),
         resetSearch: (event) => _onResetSearch(event, emit),
       ),
@@ -154,31 +155,44 @@ class ConversationsBloc extends Bloc<ConversationsEvent, ConversationsState> {
     _CreateNewConversation event,
     Emitter<ConversationsState> emit,
   ) async {
-    //   try {
-    //     final currentState = state;
-    //     if (currentState is! _Loaded && currentState is! _LoadingMore) return;
+    try {
+      final currentState = state;
+      if (currentState is! _Loaded && currentState is! _LoadingMore) return;
 
-    //     emit(const ConversationsState.loading());
+      emit(const ConversationsState.loading());
 
-    //     final newConversation = await _useCases.createConversation(
-    //       currentUser: event.currentUser,
-    //       receiverUsername: event.receiverUsername,
-    //     );
+      final newConversation = await _createConversation.call(
+        uid: event.uid,
+        participants: [event.uid, ...event.participants],
+      );
 
-    //     emit(ConversationsState.conversationCreated(newConversation));
+      emit(ConversationsState.conversationCreated(newConversation));
 
-    //     // Reload conversations to include the new one
-    //     add(_LoadConversations(event.currentUser.id));
-    //   } catch (e, stackTrace) {
-    //     emit(
-    //       ConversationsState.error(
-    //         code: 500.toString(),
-    //         message: e.toString(),
-    //         stackTrace: stackTrace,
-    //       ),
-    //     );
-    //   }
+      // Reload conversations to include the new one
+      add(_LoadConversations(event.uid));
+    } catch (e, stackTrace) {
+      emit(
+        ConversationsState.error(
+          code: 500.toString(),
+          message: e.toString(),
+          stackTrace: stackTrace,
+        ),
+      );
+    }
   }
+
+  Future<void> _onUpdateConversation(
+  _UpdateConversation event,
+  Emitter<ConversationsState> emit,
+) async {
+  final currentState = state;
+  if (currentState is _Loaded) {
+    final updatedList = currentState.conversations.map((c) {
+      return c.id == event.conversation.id ? event.conversation : c;
+    }).toList();
+    emit(currentState.copyWith(conversations: updatedList));
+  }
+}
 
   Future<void> _onDeleteConversation(
     _DeleteConversation event,

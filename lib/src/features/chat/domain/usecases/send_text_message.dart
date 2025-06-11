@@ -8,11 +8,15 @@ class SendTextMessage {
   Future<void> call({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required String text,
   }) async {
     return _repo.sendTextMessage(
       chatroomId: chatroomId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       text: text,
     );
   }

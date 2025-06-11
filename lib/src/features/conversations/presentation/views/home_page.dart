@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _debugProviderHierarchy();
+    //_debugProviderHierarchy();
 
     _scrollController = ScrollController();
 
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
               di.sl<ConversationsBloc>()
                 ..add(ConversationsEvent.loadConversations(user.uid)),
       child: BlocListener<ConversationsBloc, ConversationsState>(
-        listener: (_, state) => _handleStateChanges,
+        listener: (context, state) => _handleStateChanges,
         child: Scaffold(
           floatingActionButton: Builder(
             builder:
@@ -182,11 +182,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.pushNamed(
           context,
           AppRoutes.chat,
-          arguments: {
-            'conversationId': conversation.id,
-            'receiverId': conversation.uid,
-            'user': user,
-          },
+          arguments: {'conversation': conversation, 'user': user},
         );
       },
       error: (code, message, _) {
@@ -293,7 +289,7 @@ class _HomePageState extends State<HomePage> {
             conversations.length +
             (isLoadingMore ? 1 : 0) +
             (hasReachedMax ? 0 : 1),
-        itemBuilder: (context, index) {
+        itemBuilder: (itemContext, index) {
           if (index >= conversations.length) {
             if (isLoadingMore) {
               return const Center(
@@ -309,7 +305,7 @@ class _HomePageState extends State<HomePage> {
           final conversation = conversations[index];
           return ConversationCard(
             conversation: conversation,
-            onTap: () => _openChat(context, conversation),
+            onTap: () => _openChat(itemContext, conversation),
             uid: conversation.uid!,
           );
         },
@@ -317,21 +313,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _openChat(BuildContext context, ConversationEntity conversation) {
-    Navigator.pushNamed(
+  void _openChat(BuildContext context, ConversationEntity conversation) async {
+    final bloc = context.read<ConversationsBloc>();
+    final updatedConversation = await Navigator.pushNamed(
       context,
       AppRoutes.chat,
-      arguments: {
-        'conversationId': conversation.id,
-        'receiverId': conversation.uid,
-        'user': user,
-      },
+      arguments: {'conversation': conversation, 'user': user},
     );
+
+    // If ChatPage returns an updated conversation, update the list
+    if (!mounted) return;
+    if (updatedConversation is ConversationEntity) {
+      bloc.add(ConversationsEvent.updateConversation(updatedConversation));
+    }
   }
 
   void _showUserSearchSheet(BuildContext context) {
     // Get the blocs from the parent context
-    final searchUsersBloc = context.read<SearchUsersBloc>();
+    // final searchUsersBloc = context.read<SearchUsersBloc>();
     final conversationsBloc = context.read<ConversationsBloc>();
 
     showModalBottomSheet(
@@ -341,7 +340,7 @@ class _HomePageState extends State<HomePage> {
       builder: (sheetContext) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider.value(value: searchUsersBloc),
+            // BlocProvider.value(value: searchUsersBloc),
             BlocProvider.value(value: conversationsBloc),
           ],
           child: Container(

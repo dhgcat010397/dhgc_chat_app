@@ -1,4 +1,5 @@
 class AppImages {
+  AppImages._();
 
   /// General icons
   static const String _imgPath = 'assets/images/';

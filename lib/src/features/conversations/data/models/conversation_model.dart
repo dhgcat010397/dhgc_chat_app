@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ConversationModel extends Equatable {
   final String id;
@@ -7,7 +8,7 @@ class ConversationModel extends Equatable {
   final List<String> participants;
   final bool isOnline;
   final String lastMessage;
-  final DateTime lastMessageAt;
+  final DateTime? lastMessageAt;
 
   const ConversationModel({
     required this.id,
@@ -38,7 +39,7 @@ class ConversationModel extends Equatable {
       participants: List<String>.from(json['participants'] as List),
       isOnline: json['isOnline'] as bool? ?? true,
       lastMessage: json['lastMessage'] as String,
-      lastMessageAt: DateTime.parse(json['lastMessageTime'] as String),
+      lastMessageAt: (json['lastMessageAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -50,7 +51,7 @@ class ConversationModel extends Equatable {
       'participants': participants,
       'isOnline': isOnline,
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageAt.toIso8601String(),
+      'lastMessageTime': lastMessageAt?.toIso8601String(),
     };
   }
 

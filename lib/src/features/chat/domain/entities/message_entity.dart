@@ -9,9 +9,11 @@ class MessageEntity extends Equatable
     with ModelConvertible<MessageEntity, MessageModel> {
   final String messageId;
   final String senderId;
+  final String? senderName;
+  final String? senderAvatar;
   final String? text;
   final List<String>? imageUrls;
-  final DateTime timestamp;
+  final DateTime? timestamp;
   final MessageType type;
   final String? callId;
   final CallStatus? callStatus;
@@ -20,6 +22,8 @@ class MessageEntity extends Equatable
   const MessageEntity({
     required this.messageId,
     required this.senderId,
+    required this.senderName,
+    required this.senderAvatar,
     this.text,
     this.imageUrls,
     required this.timestamp,
@@ -33,6 +37,8 @@ class MessageEntity extends Equatable
   List<Object?> get props => [
     messageId,
     senderId,
+    senderName,
+    senderAvatar,
     text,
     imageUrls,
     timestamp,
@@ -47,6 +53,8 @@ class MessageEntity extends Equatable
     return MessageModel(
       messageId: messageId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       text: text,
       imageUrls: imageUrls,
       timestamp: timestamp,
@@ -60,6 +68,8 @@ class MessageEntity extends Equatable
   MessageEntity copyWith({
     String? messageId,
     String? senderId,
+    String? senderName,
+    String? senderAvatar,
     String? text,
     List<String>? imageUrls,
     DateTime? timestamp,
@@ -71,6 +81,8 @@ class MessageEntity extends Equatable
     return MessageEntity(
       messageId: messageId ?? this.messageId,
       senderId: senderId ?? this.senderId,
+      senderName: senderName ?? this.senderName,
+      senderAvatar: senderAvatar ?? this.senderAvatar,
       text: text ?? this.text,
       imageUrls: imageUrls ?? this.imageUrls,
       timestamp: timestamp ?? this.timestamp,

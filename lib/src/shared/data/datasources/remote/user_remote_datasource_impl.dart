@@ -1,10 +1,11 @@
-import 'package:dhgc_chat_app/src/shared/domain/entities/search_users_result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
+import 'package:dhgc_chat_app/src/core/utils/constants/firestore_constants.dart';
+import 'package:dhgc_chat_app/src/shared/domain/entities/search_users_result.dart';
 import 'package:dhgc_chat_app/src/shared/data/models/user_model.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
@@ -19,7 +20,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   Future<bool> checkUserExist(String uid, {BuildContext? context}) async {
     try {
       final userExists = await _firestoreService.checkDocumentExists(
-        collection: 'users',
+        collection: FirestoreConstants.users,
         docId: uid,
       );
 
@@ -58,7 +59,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
       try {
         final uid = await _firestoreService.setDocument(
-          collection: 'users',
+          collection: FirestoreConstants.users,
           docId: user.uid,
           data: userData,
         );
@@ -112,7 +113,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
       try {
         await _firestoreService.updateDocument(
-          collection: 'users',
+          collection: FirestoreConstants.users,
           docId: user.uid,
           updates: userData,
         );
@@ -150,7 +151,10 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   @override
   Future<void> deleteUser(String uid, {BuildContext? context}) async {
     try {
-      await _firestoreService.deleteDocument(collection: 'users', docId: uid);
+      await _firestoreService.deleteDocument(
+        collection: FirestoreConstants.users,
+        docId: uid,
+      );
 
       debugPrint('🗑️ Successfully deleted user $uid');
 
@@ -193,7 +197,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
       if (userExits) {
         final userData = await _firestoreService.getDocument(
-          collection: "users",
+          collection: FirestoreConstants.users,
           docId: uid,
         );
 
@@ -236,7 +240,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
       if (userExits) {
         final userData = await _firestoreService.getDocument(
-          collection: "users",
+          collection: FirestoreConstants.users,
           docId: uid,
         );
 
@@ -290,7 +294,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       }
 
       return _firestoreService
-          .streamDocument(collection: "users", docId: uid)
+          .streamDocument(collection: FirestoreConstants.users, docId: uid)
           .map((snapshot) {
             if (!snapshot.exists) return UserStatus.offline;
 
@@ -347,7 +351,7 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
       // Get all users (warning: this might be inefficient for large user bases)
       final querySnapshot = await _firestoreService.getCollection(
-        path: 'users',
+        path: FirestoreConstants.users,
         queryBuilder: (Query query) {
           query = query
               .where('displayNameLower', isGreaterThanOrEqualTo: searchQuery)

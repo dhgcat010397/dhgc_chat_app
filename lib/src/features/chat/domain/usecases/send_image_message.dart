@@ -8,11 +8,15 @@ class SendImageMessage {
   Future<void> call({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required List<String> imagePaths,
   }) async {
     return _repo.sendImageMessage(
       chatroomId: chatroomId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       imagePaths: imagePaths,
     );
   }

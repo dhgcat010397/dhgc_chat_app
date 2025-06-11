@@ -39,7 +39,7 @@ class MiniProfile extends StatelessWidget {
       decoration: BoxDecoration(color: backgroundColor),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircleAvatarWidget(
             imageUrl: userAvatar,
@@ -49,6 +49,7 @@ class MiniProfile extends StatelessWidget {
           const SizedBox(width: 10.0),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

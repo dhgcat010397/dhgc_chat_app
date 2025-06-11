@@ -1,6 +1,9 @@
+import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
+import 'package:dhgc_chat_app/src/core/utils/constants/firestore_constants.dart';
 import 'package:dhgc_chat_app/src/core/utils/enums/search_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/data/datasources/remote/chat_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/features/conversations/data/datasources/remote/conversation_remote_datasource.dart';
@@ -32,7 +35,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
   }) async {
     try {
       final querySnapshot = await _firestoreService.getCollection(
-        path: 'chatrooms',
+        path: FirestoreConstants.conversations,
         queryBuilder: (Query query) {
           query = query
               .where('participants', arrayContains: uid)
@@ -68,6 +71,10 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
               participants: List<String>.from(data['participants'] ?? []),
               lastMessage: data['lastMessage'] ?? '',
               lastMessageAt: (data['lastMessageTime'] as Timestamp).toDate(),
+              lastMessageType: MessageType.values.firstWhere(
+                (e) => e.name == data['type'],
+                orElse: () => MessageType.text,
+              ),
               createdAt: (data['createdAt'] as Timestamp).toDate(),
               groupInfo:
                   isGroup
@@ -97,7 +104,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         message: e.message ?? 'Firestore operation failed',
         stackTrace: stackTrace,
       );
-    } catch (e, stackTrace) {      
+    } catch (e, stackTrace) {
       debugPrint("UNKNOWN_ERROR\n${e.toString()}\n$stackTrace");
       throw ConversationRemoteDatasourceException(
         code: 'UNKNOWN_ERROR',
@@ -156,7 +163,9 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
       }
 
       // Create conversation document
-      final conversationId = _firestoreService.getDocId("conversations");
+      final conversationId = _firestoreService.getDocId(
+        FirestoreConstants.conversations,
+      );
       final now = DateTime.now();
 
       // Build participant data map
@@ -181,7 +190,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         'createdAt': Timestamp.fromDate(now),
         'lastMessage': isGroup ? 'Group created' : 'Conversation started',
         'lastMessageTime': Timestamp.fromDate(now),
-        'lastMessageType': 'system',
+        'lastMessageType': MessageType.system.name,
         'participantData': participantData,
         'isGroup': isGroup,
         if (isGroup) ...{
@@ -198,20 +207,20 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
 
       // Create the conversation document
       await _firestoreService.setDocument(
-        collection: 'conversations',
+        collection: FirestoreConstants.conversations,
         docId: conversationId,
         data: conversationData,
       );
 
       // Add system message
-      await _chatRemoteDatasource.sendTextMessage(
-        chatroomId: conversationId,
-        senderId: 'system',
-        text:
-            isGroup
-                ? 'Group created by ${(await _userRemoteDatasource.getUserInfo(uid))?.displayName ?? 'User'}'
-                : 'Conversation started',
-      );
+      // await _chatRemoteDatasource.sendTextMessage(
+      //   chatroomId: conversationId,
+      //   senderId: 'system',
+      //   text:
+      //       isGroup
+      //           ? 'Group created by ${(await _userRemoteDatasource.getUserInfo(uid))?.displayName ?? 'User'}'
+      //           : 'Conversation started',
+      // );
 
       // Return the conversation entity
       return ConversationEntity(
@@ -226,6 +235,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
                 : false,
         lastMessage: isGroup ? 'Group created' : 'Conversation started',
         lastMessageAt: now,
+        lastMessageType: MessageType.system,
         isGroup: isGroup,
         participants: participants,
         groupInfo:
@@ -298,7 +308,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
 
       // First try to find by exact participant match (optimized for 1:1 chats)
       final querySnapshot = await _firestoreService.getCollection(
-        path: 'conversations',
+        path: FirestoreConstants.conversations,
         queryBuilder: (Query query) {
           return query
               .where('participantHash', isEqualTo: participantHash)
@@ -313,7 +323,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
       // Fallback for cases where participantHash isn't indexed or for groups
       // This is more expensive but ensures we don't miss any conversations
       final fallbackQuery = await _firestoreService.getCollection(
-        path: 'conversations',
+        path: FirestoreConstants.conversations,
         queryBuilder: (Query query) {
           return query.where('participants', arrayContains: participants.first);
         },
@@ -356,6 +366,10 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         isOnline: false,
         lastMessage: data['lastMessage'] ?? '',
         lastMessageAt: (data['lastMessageTime'] as Timestamp).toDate(),
+        lastMessageType: MessageType.values.firstWhere(
+          (e) => e.name == data['type'],
+          orElse: () => MessageType.text,
+        ),
         isGroup: true,
         participants: List<String>.from(data['participants'] ?? []),
         groupInfo: GroupUsersEntity(
@@ -386,6 +400,10 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
           UserStatus.online,
       lastMessage: data['lastMessage'] ?? '',
       lastMessageAt: (data['lastMessageTime'] as Timestamp).toDate(),
+      lastMessageType: MessageType.values.firstWhere(
+        (e) => e.name == data['type'],
+        orElse: () => MessageType.text,
+      ),
       isGroup: false,
       participants: List<String>.from(data['participants'] ?? []),
       groupInfo: null,

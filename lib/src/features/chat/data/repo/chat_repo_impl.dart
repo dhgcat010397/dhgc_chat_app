@@ -31,11 +31,15 @@ class ChatRepoImpl implements ChatRepo {
   Future<void> sendTextMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required String text,
   }) async {
     await remoteDatasource.sendTextMessage(
       chatroomId: chatroomId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       text: text,
     );
   }
@@ -44,11 +48,15 @@ class ChatRepoImpl implements ChatRepo {
   Future<void> sendImageMessage({
     required String chatroomId,
     required String senderId,
+    required String senderName,
+    required String senderAvatar,
     required List<String> imagePaths,
   }) async {
     await remoteDatasource.sendImageMessage(
       chatroomId: chatroomId,
       senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       imagePaths: imagePaths,
     );
   }
