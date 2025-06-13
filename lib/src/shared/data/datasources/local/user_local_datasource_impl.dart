@@ -9,7 +9,7 @@ class UserLocalDatasourceImpl implements UserLocalDatasource {
   static String usernameKey = "USERNAME_KEY";
   static String userEmailKey = "USER_EMAIL_KEY";
   static String userImgKey = "USER_IMG_KEY";
-  static String userDisplayName = "USER_DISPLAYNAME_KEY";
+  static String userFullnameKey = "USER_FULLNAME_KEY";
 
   @override
   Future<bool> saveUID(String uid) async {
@@ -27,11 +27,8 @@ class UserLocalDatasourceImpl implements UserLocalDatasource {
   }
 
   @override
-  Future<bool> saveUserDisplayName(String displayName) async {
-    return await SharedPreferencesHelper.setString(
-      userDisplayName,
-      displayName,
-    );
+  Future<bool> saveFullname(String fullname) async {
+    return await SharedPreferencesHelper.setString(userFullnameKey, fullname);
   }
 
   @override
@@ -40,18 +37,18 @@ class UserLocalDatasourceImpl implements UserLocalDatasource {
   }
 
   @override
-  Future<bool> saveUserInfo(UserEntity user) async {
+  Future<bool> saveUser(UserEntity user) async {
     final futures = [
       saveUID(user.uid),
       saveUsername(user.username),
       saveEmail(user.email),
-      saveUserDisplayName(user.displayName!),
-      saveImage(user.imgUrl!),
+      saveFullname(user.displayName ?? ""),
+      saveImage(user.imgUrl ?? ""),
     ];
 
     final results = await Future.wait(futures);
 
-    final success = results.any((e) => !e) ? false : true;
+    final success = results.every((e) => e);
 
     return success;
   }

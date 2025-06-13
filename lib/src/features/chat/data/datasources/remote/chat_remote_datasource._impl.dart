@@ -26,7 +26,7 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
        _uuid = uuid ?? const Uuid();
 
   @override
-  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 30]) {
+  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 20]) {
     try {
       return _firestoreService
           .streamSubcollection(
@@ -35,7 +35,7 @@ class ChatRemoteDatasourceImpl implements ChatRemoteDatasource {
             subcollection: FirestoreConstants.messages,
             queryBuilder:
                 (query) =>
-                    query.orderBy('timestamp', descending: true).limit(30),
+                    query.orderBy('timestamp', descending: true).limit(limit),
           )
           .map(
             (snapshot) =>

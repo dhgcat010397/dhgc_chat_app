@@ -30,7 +30,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
   @override
   Future<PaginatedConversations> getConversations({
     required String uid,
-    int limit = 30,
+    int limit = 20,
     DocumentSnapshot? lastDocument,
   }) async {
     try {
@@ -286,16 +286,88 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
     throw Exception();
   }
 
+  /// Search 1:1 conversations by other user's displayName with lazy loading support.
+  /// [uid] - current user id
+  /// [query] - search string for displayName
+  /// [limit] - max results per page
+  /// [lastDocument] - last fetched document for pagination
   @override
-  Future<List<ConversationEntity>> searchConversations({
-    required SearchType searchType,
-    String? id,
-    String? username,
-    String? displayName,
-    String? phone,
-    String? email,
-  }) {
-    throw Exception();
+  Future<PaginatedConversations> searchConversationByName({
+    required String uid,
+    required String query,
+    int limit = 20,
+    DocumentSnapshot? lastDocument,
+  }) async {
+    try {
+      // 1. Query conversations where current user is a participant
+      final querySnapshot = await _firestoreService.getCollection(
+        path: FirestoreConstants.conversations,
+        queryBuilder: (Query q) {
+          q = q
+              .where('participants', arrayContains: uid)
+              .orderBy('lastMessageTime', descending: true)
+              .limit(limit);
+          if (lastDocument != null) {
+            q = q.startAfterDocument(lastDocument);
+          }
+          return q;
+        },
+      );
+
+      final List<ConversationEntity> results = [];
+      for (final doc in querySnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final isGroup = data['isGroup'] ?? false;
+
+        if (!isGroup) {
+          final otherUserId = (data['participants'] as List)
+              .cast<String>()
+              .firstWhere((id) => id != uid, orElse: () => '');
+          if (otherUserId.isEmpty) continue;
+
+          final otherUser = await _userRemoteDatasource.getUserInfo(
+            otherUserId,
+          );
+          final displayName =
+              otherUser?.displayName ?? otherUser?.username ?? '';
+          if (displayName.toLowerCase().contains(query.toLowerCase())) {
+            results.add(
+              ConversationEntity(
+                id: doc.id,
+                uid: otherUserId,
+                name: displayName,
+                avatar: otherUser?.imgUrl ?? "",
+                participants: List<String>.from(data['participants'] ?? []),
+                lastMessage: data['lastMessage'] ?? '',
+                lastMessageAt: (data['lastMessageTime'] as Timestamp).toDate(),
+                lastMessageType: MessageType.values.firstWhere(
+                  (e) => e.name == data['type'],
+                  orElse: () => MessageType.text,
+                ),
+                createdAt: (data['createdAt'] as Timestamp).toDate(),
+                isGroup: false,
+                groupInfo: null,
+              ),
+            );
+          }
+        }
+        // Optionally, add group search logic here if needed
+      }
+
+      return PaginatedConversations(
+        conversations: results,
+        lastDocument:
+            querySnapshot.docs.isNotEmpty ? querySnapshot.docs.last : null,
+        hasMore: querySnapshot.docs.length == limit,
+      );
+    } catch (e, stackTrace) {
+      debugPrint("SEARCH_ERROR\n${e.toString()}\n$stackTrace");
+      throw ConversationRemoteDatasourceException(
+        code: 'SEARCH_ERROR',
+        message: e.toString(),
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<ConversationEntity?> _findExistingConversation(

@@ -5,14 +5,10 @@ import 'package:dhgc_chat_app/src/features/conversations/data/repo/conversation_
 import 'package:dhgc_chat_app/src/features/conversations/domain/repo/conversation_repo.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/usecases/create_conversation.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/usecases/load_conversations.dart';
+import 'package:dhgc_chat_app/src/features/conversations/domain/usecases/search_conversations.dart';
 import 'package:dhgc_chat_app/src/features/conversations/presentation/bloc/conversations_bloc.dart';
 
 Future<void> conversationInjectionContainer() async {
-  // Register the ChatLocalDatasource
-  // sl.registerLazySingleton<ChatLocalDatasource>(
-  //   () => ChatLocalDatasourceImpl(),
-  // );
-
   // Register the ConversationRemoteDatasource
   sl.registerLazySingleton<ConversationRemoteDatasource>(
     () => ConversationRemoteDatasourceImpl(
@@ -32,11 +28,17 @@ Future<void> conversationInjectionContainer() async {
 
   // Register the use cases
   sl.registerLazySingleton<CreateConversation>(() => CreateConversation(sl()));
-
   sl.registerLazySingleton<LoadConversations>(() => LoadConversations(sl()));
+  sl.registerLazySingleton<SearchConversations>(
+    () => SearchConversations(sl()),
+  );
 
   // Register the ConversationsBloc
   sl.registerFactory<ConversationsBloc>(
-    () => ConversationsBloc(createConversation: sl(), loadConversations: sl()),
+    () => ConversationsBloc(
+      createConversation: sl(),
+      loadConversations: sl(),
+      searchConversations: sl(),
+    ),
   );
 }

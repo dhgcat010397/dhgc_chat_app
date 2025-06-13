@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dhgc_chat_app/src/features/auth/domain/usecases/register_with_email_password.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
@@ -18,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginWithGoogle _loginWithGoogle;
   final LoginWithFacebook _loginWithFacebook;
   final LoginWithApple _loginWithApple;
+  final RegisterWithEmailAndPassword _registerWithEmailAndPassword;
 
   late UserEntity? user;
 
@@ -26,14 +28,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required LoginWithGoogle loginWithGoogle,
     required LoginWithFacebook loginWithFacebook,
     required LoginWithApple loginWithApple,
+    required RegisterWithEmailAndPassword registerWithEmailAndPassword,
   }) : _loginWithEmailAndPassword = loginWithEmailAndPassword,
        _loginWithGoogle = loginWithGoogle,
        _loginWithFacebook = loginWithFacebook,
        _loginWithApple = loginWithApple,
+       _registerWithEmailAndPassword = registerWithEmailAndPassword,
        super(const _Initial()) {
     on<AuthEvent>(
       (event, emit) => event.map(
         checkAuthentication: (event) => _onCheckAuthentication(emit),
+        registerWithEmailAndPassword:
+            (event) => _onRegisterWithEmailAndPassword(event, emit),
         loginWithEmailAndPassword:
             (event) => _onLoginWithEmailAndPassword(event, emit),
         loginWithGoogle: (event) => _onLoginWithGoogle(emit),
@@ -59,6 +65,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onRegisterWithEmailAndPassword(
+    _RegisterWithEmailAndPassword event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthState.loading());
+
+    try {
+      user = await _registerWithEmailAndPassword.call(
+        email: event.email,
+        password: event.password,
+        confirmPassword: event.confirmPassword,
+        fullname: event.fullname,
+      );
+      emit(AuthState.authenticated(user!));
+    } catch (e, stackTrace) {
+      emit(
+        AuthState.error(
+          code: e.hashCode.toString(),
+          message: e.toString(),
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
   Future<void> _onLoginWithEmailAndPassword(
     _LoginWithEmailAndPassword event,
     Emitter<AuthState> emit,
@@ -66,9 +97,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
 
     try {
-      // _notesList = await getNotesListUseCase.call();
-      // final email = event.email;
-      // final password = event.password;
+      user = await _loginWithEmailAndPassword.call(event.email, event.password);
       emit(AuthState.authenticated(user!));
     } catch (e, stackTrace) {
       emit(

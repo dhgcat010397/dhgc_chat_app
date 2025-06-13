@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dhgc_chat_app/src/core/utils/enums/search_type.dart';
 import 'package:dhgc_chat_app/src/features/conversations/data/datasources/remote/conversation_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/entities/conversation_entity.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/entities/paginated_conversations.dart';
@@ -13,7 +12,7 @@ class ConversationRepoImpl implements ConversationRepo {
   @override
   Future<PaginatedConversations> getConversations({
     required String uid,
-    int limit = 30,
+    int limit = 20,
     DocumentSnapshot? lastDocument,
   }) async {
     return await remoteDatasource.getConversations(
@@ -51,21 +50,17 @@ class ConversationRepoImpl implements ConversationRepo {
   }
 
   @override
-  Future<List<ConversationEntity>> searchConversations({
-    required SearchType searchType,
-    String? id,
-    String? username,
-    String? displayName,
-    String? phone,
-    String? email,
-  }) async {
-    return await remoteDatasource.searchConversations(
-      searchType: searchType,
-      id: id,
-      username: username,
-      displayName: displayName,
-      phone: phone,
-      email: email,
+  Future<PaginatedConversations> searchConversationByName({
+  required String uid,
+  required String query,
+  int limit = 20,
+  DocumentSnapshot? lastDocument,
+}) async {
+    return await remoteDatasource.searchConversationByName(
+      uid: uid,
+      query: query,
+      limit: limit,
+      lastDocument: lastDocument,
     );
   }
 }

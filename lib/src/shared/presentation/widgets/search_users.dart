@@ -43,24 +43,24 @@ class SearchUsersWidget extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xffececf8),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: ChatAppSearchBar(
-        onSearch: (query) {
-          // Handle search logic here
-          final String searchQuery = query.cleanedQuery;
-          debugPrint('Search query (cleaned): "$searchQuery"');
-          context.read<SearchUsersBloc>().add(
-            SearchUsersEvent.search(searchQuery),
-          );
-        },
-        onClear: () {
-          context.read<SearchUsersBloc>().add(const SearchUsersEvent.clear());
-        },
-        hintText: 'Search by Receiver\'s Name',
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12.0),
+      child: Container(
+        decoration: BoxDecoration(color: Color(0xffececf8)),
+        child: ChatAppSearchBar(
+          onSearch: (query) {
+            // Handle search logic here
+            final String searchQuery = query.cleanedQuery;
+            debugPrint('Search query (cleaned): "$searchQuery"');
+            context.read<SearchUsersBloc>().add(
+              SearchUsersEvent.search(searchQuery),
+            );
+          },
+          onClear: () {
+            context.read<SearchUsersBloc>().add(const SearchUsersEvent.clear());
+          },
+          hintText: 'Search by Receiver\'s Name',
+        ),
       ),
     );
   }

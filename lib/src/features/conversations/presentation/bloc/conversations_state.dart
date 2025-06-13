@@ -14,9 +14,11 @@ abstract class ConversationsState with _$ConversationsState {
     required bool hasReachedMax,
     required DocumentSnapshot? lastDocument,
   }) = _LoadingMore;
-  const factory ConversationsState.searchResults(
-    List<ConversationEntity> conversations,
-  ) = _SearchResults;
+  const factory ConversationsState.searchResults({
+    required List<ConversationEntity> conversations,
+    required bool hasReachedMax,
+    DocumentSnapshot? lastDocument,
+  }) = _SearchResults;
   const factory ConversationsState.conversationCreated(
     ConversationEntity conversation,
   ) = _ConversationCreated;

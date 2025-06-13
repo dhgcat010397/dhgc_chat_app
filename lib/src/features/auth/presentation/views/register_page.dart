@@ -12,9 +12,11 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
+  late TextEditingController _fullnameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
+  late FocusNode _fullnameFocusNode;
   late FocusNode _emailFocusNode;
   late FocusNode _passwordFocusNode;
   late FocusNode _confirmPasswordFocusNode;
@@ -23,9 +25,12 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     super.initState();
 
+    _fullnameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
+    
+    _fullnameFocusNode = FocusNode();
     _emailFocusNode = FocusNode();
     _passwordFocusNode = FocusNode();
     _confirmPasswordFocusNode = FocusNode();
@@ -33,9 +38,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
+    _fullnameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    
+    _fullnameFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
@@ -76,6 +84,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const Text('Register Page Content'),
                   const SizedBox(height: 20),
+                  _buildFullnameField(),
+                  const SizedBox(height: 20),
                   _buildEmailField(),
                   const SizedBox(height: 20),
                   _buildPasswordField(),
@@ -86,6 +96,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         // Handle login action
+                        final String email = _emailController.text.trim();
+                        final String password = _passwordController.text.trim();
+                        final String confirmPassword = _confirmPasswordController.text.trim();
+                        final String fullname = _fullnameController.text.trim();
+                        
+                        context.read<AuthBloc>().add(AuthEvent.registerWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                          confirmPassword: confirmPassword,
+                          fullname: fullname,
+                        ));
                       }
                     },
                     buttonText: 'REGISTER',
@@ -97,6 +118,20 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFullnameField() {
+    return TextFormField(
+      controller: _fullnameController,
+      focusNode: _fullnameFocusNode,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: InputValidator.validateFullName,
+      keyboardType: TextInputType.name,
+      decoration: InputDecoration(
+        labelText: 'Fullname',
+        border: OutlineInputBorder(),
       ),
     );
   }

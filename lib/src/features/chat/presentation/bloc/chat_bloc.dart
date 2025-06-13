@@ -36,7 +36,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription<List<MessageEntity>>? _messagesSubscription;
   StreamSubscription<CallEntity?>? _callSubscription;
   // Timer? _typingTimer;
-  final int _initialBatchSize = 30, _paginationBatchSize = 20;
+  final int _initialBatchSize = 20, _paginationBatchSize = 20;
 
   ChatBloc({
     required SendTextMessage sendTextMessage,

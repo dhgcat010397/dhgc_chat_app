@@ -27,7 +27,9 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   late ScrollController _scrollController;
   late UserEntity _user;
-  bool _showScrollButton = false;
+  bool _showScrollButton = false,
+      _hasMoreMessages = false,
+      _isLoadingMore = false;
   late ConversationEntity _conversation;
   late MessageEntity _lastMessage;
 
@@ -40,11 +42,13 @@ class _ChatPageState extends State<ChatPage> {
 
     _scrollController = ScrollController();
     _scrollController.addListener(_updateScrollButtonVisibility);
+    _scrollController.addListener(_handleLoadMore);
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_updateScrollButtonVisibility);
+    _scrollController.removeListener(_handleLoadMore);
     _scrollController.dispose();
 
     super.dispose();
@@ -109,8 +113,18 @@ class _ChatPageState extends State<ChatPage> {
                   SnackBar(content: Text(message ?? 'An error occurred')),
                 );
               },
-              loaded: (messages, _, _, _, _, _, _) {
+              loaded: (
+                messages,
+                isTyping,
+                isLoadingMore,
+                hasMoreMessages,
+                ongoingCall,
+                errorMessage,
+                loadMoreError,
+              ) {
                 _lastMessage = messages.first;
+                _isLoadingMore = isLoadingMore;
+                _hasMoreMessages = hasMoreMessages;
               },
               callInProgress: (call) {
                 // Handle call in progress
@@ -404,5 +418,17 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatTime(DateTime time) {
     return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _handleLoadMore() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 100) {
+      // User is near the top (since reverse: true)
+      if (_hasMoreMessages && !_isLoadingMore) {
+        context.read<ChatBloc>().add(
+          ChatEvent.loadMoreMessages(_conversation.id),
+        );
+      }
+    }
   }
 }

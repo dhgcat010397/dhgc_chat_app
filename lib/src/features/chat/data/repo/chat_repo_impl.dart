@@ -10,7 +10,7 @@ class ChatRepoImpl implements ChatRepo {
   ChatRepoImpl({required this.remoteDatasource});
 
   @override
-  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 30]) {
+  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 20]) {
     return remoteDatasource.getMessages(chatroomId, limit);
   }
 

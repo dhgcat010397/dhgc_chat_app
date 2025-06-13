@@ -1,4 +1,3 @@
-import 'package:dhgc_chat_app/src/shared/presentation/bloc/search_users_bloc/search_users_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,8 +26,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late ScrollController _scrollController;
   String _searchQuery = "";
-
-  late UserEntity user;
+  bool _hasMoreConversations = false, _isLoadingMore = false;
+  late UserEntity _user;
 
   @override
   void initState() {
@@ -36,12 +35,14 @@ class _HomePageState extends State<HomePage> {
     //_debugProviderHierarchy();
 
     _scrollController = ScrollController();
+    _scrollController.addListener(_handleLoadMore);
 
-    user = widget.user;
+    _user = widget.user;
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_handleLoadMore);
     _scrollController.dispose();
 
     super.dispose();
@@ -57,7 +58,7 @@ class _HomePageState extends State<HomePage> {
       create:
           (context) =>
               di.sl<ConversationsBloc>()
-                ..add(ConversationsEvent.loadConversations(user.uid)),
+                ..add(ConversationsEvent.loadConversations(_user.uid)),
       child: BlocListener<ConversationsBloc, ConversationsState>(
         listener: (context, state) => _handleStateChanges,
         child: Scaffold(
@@ -91,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(width: 5.0),
                       Expanded(
                         child: Text(
-                          '${user.displayName!.isEmpty ? user.username : user.displayName}',
+                          '${_user.displayName!.isEmpty ? _user.username : _user.displayName}',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: TextStyle(
@@ -103,9 +104,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(width: 10.0),
                       CircleAvatarWidget(
-                        imageUrl: user.imgUrl!,
+                        imageUrl: _user.imgUrl!,
                         size: 60.0,
-                        uid: user.uid,
+                        uid: _user.uid,
                       ),
                     ],
                   ),
@@ -177,12 +178,24 @@ class _HomePageState extends State<HomePage> {
 
   void _handleStateChanges(BuildContext context, ConversationsState state) {
     state.whenOrNull(
+      loaded: (conversations, hasReachedMax, _) {
+        _hasMoreConversations = !hasReachedMax;
+        _isLoadingMore = false;
+      },
+      loadingMore: (conversations, hasReachedMax, _) {
+        _hasMoreConversations = !hasReachedMax;
+        _isLoadingMore = true;
+      },
+      searchResults: (conversations, hasReachedMax, _) {
+        _hasMoreConversations = !hasReachedMax;
+        _isLoadingMore = false;
+      },
       conversationCreated: (conversation) {
         // Navigate to chat page when conversation is created
         Navigator.pushNamed(
           context,
           AppRoutes.chat,
-          arguments: {'conversation': conversation, 'user': user},
+          arguments: {'conversation': conversation, 'user': _user},
         );
       },
       error: (code, message, _) {
@@ -195,21 +208,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xffececf8),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: ChatAppSearchBar(
-        onSearch: (query) {
-          // Handle search logic here
-          _searchQuery = query.cleanedQuery;
-          debugPrint('Search query (cleaned): "$_searchQuery"');
-          context.read<ConversationsBloc>().add(
-            ConversationsEvent.searchConversations(_searchQuery),
-          );
-        },
-        hintText: 'Search by Receiver\'s Name',
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12.0),
+      child: Container(
+        decoration: BoxDecoration(color: Color(0xffececf8)),
+        child: ChatAppSearchBar(
+          onSearch: (query) {
+            // Handle search logic here
+            _searchQuery = query.cleanedQuery;
+            debugPrint('Search query (cleaned): "$_searchQuery"');
+            context.read<ConversationsBloc>().add(
+              ConversationsEvent.searchConversations(
+                uid: _user.uid,
+                query: _searchQuery,
+              ),
+            );
+          },
+          hintText: 'Search by Receiver\'s Name',
+        ),
       ),
     );
   }
@@ -240,9 +256,13 @@ class _HomePageState extends State<HomePage> {
             },
           ),
       searchResults:
-          (conversations) => Builder(
+          (conversations, hasReachedMax, lastDocument) => Builder(
             builder: (innerContext) {
-              return _buildConversationList(innerContext, conversations, true);
+              return _buildConversationList(
+                innerContext,
+                conversations,
+                hasReachedMax,
+              );
             },
           ),
       conversationCreated:
@@ -277,9 +297,18 @@ class _HomePageState extends State<HomePage> {
       onRefresh: () async {
         // Handle refresh logic here
         debugPrint('Refresh triggered');
-        context.read<ConversationsBloc>().add(
-          ConversationsEvent.loadConversations(user.uid),
-        );
+        if (_searchQuery.isEmpty) {
+          context.read<ConversationsBloc>().add(
+            ConversationsEvent.loadConversations(_user.uid),
+          );
+        } else {
+          context.read<ConversationsBloc>().add(
+            ConversationsEvent.searchConversations(
+              uid: _user.uid,
+              query: _searchQuery,
+            ),
+          );
+        }
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -318,7 +347,7 @@ class _HomePageState extends State<HomePage> {
     final updatedConversation = await Navigator.pushNamed(
       context,
       AppRoutes.chat,
-      arguments: {'conversation': conversation, 'user': user},
+      arguments: {'conversation': conversation, 'user': _user},
     );
 
     // If ChatPage returns an updated conversation, update the list
@@ -338,58 +367,69 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return MultiBlocProvider(
-          providers: [
-            // BlocProvider.value(value: searchUsersBloc),
-            BlocProvider.value(value: conversationsBloc),
-          ],
+        return BlocProvider.value(
+          value: conversationsBloc,
           child: Container(
-            height: MediaQuery.of(sheetContext).size.height,
+            height: MediaQuery.of(sheetContext).size.height * 0.7,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 16,
+                  offset: Offset(0, -4),
+                ),
+              ],
             ),
             child: Column(
               children: [
                 // Draggable handle
                 Container(
-                  margin: const EdgeInsets.only(top: 8, bottom: 8),
+                  margin: const EdgeInsets.symmetric(vertical: 12),
                   width: 40,
-                  height: 4,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 // Header with close button
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'New Conversation',
-                        style: Theme.of(sheetContext).textTheme.headlineSmall,
+                        style: Theme.of(sheetContext).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close),
+                        icon: Icon(Icons.close, color: Colors.grey[700]),
                         onPressed: () => Navigator.pop(sheetContext),
                       ),
                     ],
                   ),
                 ),
-                Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Divider(height: 1),
+                ),
                 // Search widget
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Builder(
                       builder:
                           (innerContext) => SearchUsersWidget(
                             onTapSelectedUser: (userInfo) {
                               innerContext.read<ConversationsBloc>().add(
                                 ConversationsEvent.createNewConversation(
-                                  uid: user.uid,
+                                  uid: _user.uid,
                                   participants: [userInfo.uid],
                                 ),
                               );
@@ -405,6 +445,27 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  void _handleLoadMore() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 100) {
+      // User is near the top (since reverse: true)
+      if (_hasMoreConversations && !_isLoadingMore) {
+        if (_searchQuery.isEmpty) {
+          context.read<ConversationsBloc>().add(
+            ConversationsEvent.loadMoreConversations(_user.uid),
+          );
+        }
+      } else {
+        context.read<ConversationsBloc>().add(
+          ConversationsEvent.loadingMoreSearchConversations(
+            uid: _user.uid,
+            query: _searchQuery,
+          ),
+        );
+      }
+    }
   }
 
   void _debugProviderHierarchy() {

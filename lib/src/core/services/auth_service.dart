@@ -70,6 +70,77 @@ class AuthService {
     }
   }
 
+  /// Handles Email/Password Registration flow with Firebase integration
+  /// Returns [UserCredential] on success
+  /// Throws [Exception] with user-friendly messages on failure
+  Future<UserCredential> registerWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+    required String fullname,
+  }) async {
+    try {
+      debugPrint('🔵 Starting Email/Password Registration flow');
+
+      // 1. Create user with Firebase Auth
+      final UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // 2. Update displayName
+      await userCredential.user?.updateDisplayName(fullname);
+
+      // 3. Optional: Create user profile in Firestore
+      await _createUserProfileIfNeeded(userCredential.user!);
+
+      debugPrint(
+        '✅ Successfully registered with email: ${userCredential.user?.uid}',
+      );
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('🔥 Firebase auth error: ${e.code} - ${e.message}');
+      throw ErrorHelper.showAuthError(e.code);
+    } on PlatformException catch (e) {
+      debugPrint('📱 Platform error: ${e.code} - ${e.message}');
+      throw Exception('Device authentication failed (${e.code})');
+    } catch (e, stackTrace) {
+      debugPrint('❗ Unexpected error: $e\n$stackTrace');
+      throw Exception('Registration failed. Please try again.');
+    }
+  }
+
+  /// Handles Email/Password Sign-In flow with Firebase integration
+  /// Returns [UserCredential] on success
+  /// Throws [Exception] with user-friendly messages on failure
+  Future<UserCredential> loginWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      debugPrint('🔵 Starting Email/Password Sign-In flow');
+
+      // 1. Sign in with Firebase Auth
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      // 2. Optional: Update user data in Firestore
+      await _createUserProfileIfNeeded(userCredential.user!);
+
+      debugPrint(
+        '✅ Successfully signed in with email: ${userCredential.user?.uid}',
+      );
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('🔥 Firebase auth error: ${e.code} - ${e.message}');
+      throw ErrorHelper.showAuthError(e.code);
+    } on PlatformException catch (e) {
+      debugPrint('📱 Platform error: ${e.code} - ${e.message}');
+      throw Exception('Device authentication failed (${e.code})');
+    } catch (e, stackTrace) {
+      debugPrint('❗ Unexpected error: $e\n$stackTrace');
+      throw Exception('Email sign in failed. Please try again.');
+    }
+  }
+
   /// Handles Google Sign-In flow with Firebase integration
   /// Returns [UserCredential] on success
   /// Throws [Exception] with user-friendly messages on failure

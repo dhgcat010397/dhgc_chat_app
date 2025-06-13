@@ -4,32 +4,36 @@ import 'package:flutter/services.dart';
 
 import 'package:dhgc_chat_app/src/core/helpers/error_helper.dart';
 import 'package:dhgc_chat_app/src/core/services/auth_service.dart';
+import 'package:dhgc_chat_app/src/features/auth/domain/repo/register_repo.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/local/user_local_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
-import 'package:dhgc_chat_app/src/features/auth/domain/repo/login_repo.dart';
 
-class LoginRepoImpl implements LoginRepo {
+class RegisterRepoImpl implements RegisterRepo {
   final UserLocalDatasource localDatasource;
   final UserRemoteDatasource remoteDatasource;
   final AuthService authService;
 
-  LoginRepoImpl({
+  RegisterRepoImpl({
     required this.localDatasource,
     required this.remoteDatasource,
     required this.authService,
   });
 
   @override
-  Future<UserEntity?> loginWithEmailAndPassword(
+  Future<UserEntity?> registerWithEmailAndPassword(
     String email,
     String password,
+    String confirmPassword,
+    String fullname,
   ) async {
     try {
-      // 1. Authenticate with Firebase Auth via AuthService
-      final userCredential = await authService.loginWithEmailAndPassword(
+      // 1. Register user with Firebase Auth via AuthService
+      final userCredential = await authService.registerWithEmailAndPassword(
         email: email,
         password: password,
+        confirmPassword: confirmPassword,
+        fullname: fullname,
       );
 
       // 2. Convert Firebase User to UserEntity
@@ -48,43 +52,8 @@ class LoginRepoImpl implements LoginRepo {
       throw Exception('Device authentication failed (${e.code})');
     } catch (e, stackTrace) {
       debugPrint('❗ Unexpected error: $e\n$stackTrace');
-      throw Exception('Email sign in failed. Please try again.');
+      throw Exception('Registration failed. Please try again.');
     }
-  }
-
-  @override
-  Future<UserEntity?> loginWithGoogle() async {
-    try {
-      // 1. Authenticate with Google
-      final userCredential = await authService.loginWithGoogle();
-
-      // 2. Convert Firebase User to UserEntity
-      final user = _convertToEntity(userCredential.user!);
-
-      // 3. Return success with user entity
-      return user;
-    } on FirebaseAuthException catch (e) {
-      debugPrint('🔥 Firebase auth error: ${e.code} - ${e.message}');
-      throw ErrorHelper.showAuthError(e.code);
-    } on PlatformException catch (e) {
-      debugPrint('📱 Platform error: ${e.code} - ${e.message}');
-      throw Exception('Device authentication failed (${e.code})');
-    } catch (e, stackTrace) {
-      debugPrint('❗ Unexpected error: $e\n$stackTrace');
-      throw Exception('Google sign in failed. Please try again.');
-    }
-  }
-
-  @override
-  Future<UserEntity?> loginWithFacebook() {
-    // TODO: implement loginWithFacebook
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<UserEntity?> loginWithApple() {
-    // TODO: implement loginWithApple
-    throw UnimplementedError();
   }
 
   UserEntity _convertToEntity(User user) {

@@ -4,7 +4,7 @@ import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_entity.d
 
 abstract class ChatRepo {
   // Messages
-  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 30]);
+  Stream<List<MessageEntity>> getMessages(String chatroomId, [int limit = 20]);
   Future<List<MessageEntity>> getMoreMessages({
     required String chatroomId,
     required DateTime beforeTimestamp,

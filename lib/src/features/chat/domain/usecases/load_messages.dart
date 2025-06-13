@@ -6,7 +6,7 @@ class LoadMessages {
 
   LoadMessages(this._repo);
 
-  Stream<List<MessageEntity>> call(String chatroomId, [int limit = 30]) {
+  Stream<List<MessageEntity>> call(String chatroomId, [int limit = 20]) {
     return _repo.getMessages(chatroomId, limit);
   }
 }
