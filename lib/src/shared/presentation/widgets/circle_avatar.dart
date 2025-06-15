@@ -1,9 +1,8 @@
-import 'package:dhgc_chat_app/src/core/utils/dependencies_injection.dart' as di;
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dhgc_chat_app/src/core/utils/widgets/avatar.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
 import 'package:dhgc_chat_app/src/shared/presentation/bloc/user_status_bloc/user_status_bloc.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CircleAvatarWidget extends StatelessWidget {
   const CircleAvatarWidget({
