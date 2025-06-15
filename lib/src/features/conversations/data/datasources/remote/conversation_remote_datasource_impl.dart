@@ -1,10 +1,8 @@
-import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:dhgc_chat_app/src/core/services/firestore_service.dart';
 import 'package:dhgc_chat_app/src/core/utils/constants/firestore_constants.dart';
-import 'package:dhgc_chat_app/src/core/utils/enums/search_type.dart';
 import 'package:dhgc_chat_app/src/features/chat/data/datasources/remote/chat_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/features/conversations/data/datasources/remote/conversation_remote_datasource.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/entities/conversation_entity.dart';
@@ -13,6 +11,7 @@ import 'package:dhgc_chat_app/src/shared/data/datasources/remote/user_remote_dat
 import 'package:dhgc_chat_app/src/shared/domain/entities/group_users_entity.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_entity.dart';
 import 'package:dhgc_chat_app/src/shared/domain/entities/user_status.dart';
+import 'package:dhgc_chat_app/src/features/chat/domain/entities/message_type.dart';
 
 class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
   final FirestoreService _firestoreService;
