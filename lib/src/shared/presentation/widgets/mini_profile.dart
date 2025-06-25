@@ -44,6 +44,7 @@ class MiniProfile extends StatelessWidget {
             imageUrl: userAvatar,
             size: avatarSize,
             uid: userId,
+            initials: _initialAvatar(userName),
           ),
           const SizedBox(width: 10.0),
           Expanded(
@@ -75,6 +76,14 @@ class MiniProfile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String? _initialAvatar(String? initials) {
+    if (initials != null && initials.isNotEmpty) {
+      return initials.split("").first;
+    }
+
+    return null;
   }
 
   Widget _buildStatusText(UserStatus status) {

@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-
-import 'package:intl/intl.dart';
-import 'package:dhgc_chat_app/src/shared/presentation/widgets/circle_avatar.dart';
+import 'package:dhgc_chat_app/src/core/utils/extensions/datetime_extension.dart';
 import 'package:dhgc_chat_app/src/features/conversations/domain/entities/conversation_entity.dart';
+import 'package:dhgc_chat_app/src/shared/presentation/widgets/circle_avatar.dart';
 
 class ConversationCard extends StatelessWidget {
   const ConversationCard({
     super.key,
     required this.conversation,
-    required this.uid,
     this.isOnline = true,
     this.onTap,
   });
 
   final ConversationEntity conversation;
-  final String uid;
   final bool isOnline;
   final VoidCallback? onTap;
 
@@ -46,6 +43,7 @@ class ConversationCard extends StatelessWidget {
                 imageUrl: conversation.avatar ?? "",
                 size: 60.0,
                 uid: conversation.uid,
+                initials: _initialAvatar(conversation.name),
               ),
               const SizedBox(width: 20.0),
               Expanded(
@@ -82,7 +80,7 @@ class ConversationCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Text(
-                  DateFormat('HH:mm').format(conversation.lastMessageAt),
+                  conversation.lastMessageAt.formatLastMessageAt(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14.0,
@@ -96,5 +94,13 @@ class ConversationCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String? _initialAvatar(String? initials) {
+    if (initials != null && initials.isNotEmpty) {
+      return initials.split("").first;
+    }
+
+    return null;
   }
 }

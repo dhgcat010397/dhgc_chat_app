@@ -31,7 +31,7 @@ class _ChatPageState extends State<ChatPage> {
       _hasMoreMessages = false,
       _isLoadingMore = false;
   late ConversationEntity _conversation;
-  late MessageEntity _lastMessage;
+  MessageEntity? _lastMessage;
 
   @override
   void initState() {
@@ -90,14 +90,18 @@ class _ChatPageState extends State<ChatPage> {
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          final updatedConversation = _conversation.copyWith(
-            lastMessage: _lastMessage.text,
-            lastMessageAt: _lastMessage.timestamp,
-            lastMessageType: _lastMessage.type,
-          );
+          if (_lastMessage != null) {
+            final updatedConversation = _conversation.copyWith(
+              lastMessage: _lastMessage!.text,
+              lastMessageAt: _lastMessage!.timestamp,
+              lastMessageType: _lastMessage!.type,
+            );
 
-          // If the pop is not handled by the system, handle it here
-          Navigator.pop(context, updatedConversation);
+            // If the pop is not handled by the system, handle it here
+            Navigator.pop(context, updatedConversation);
+          } else {
+            Navigator.pop(context);
+          }
         }
       },
       child: BlocProvider(
@@ -122,7 +126,7 @@ class _ChatPageState extends State<ChatPage> {
                 errorMessage,
                 loadMoreError,
               ) {
-                _lastMessage = messages.first;
+                _lastMessage = messages.isEmpty ? null : messages.first;
                 _isLoadingMore = isLoadingMore;
                 _hasMoreMessages = hasMoreMessages;
               },
@@ -154,14 +158,18 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   tooltip: 'Back',
                   onPressed: () {
-                    final updatedConversation = _conversation.copyWith(
-                      lastMessage: _lastMessage.text,
-                      lastMessageAt: _lastMessage.timestamp,
-                      lastMessageType: _lastMessage.type,
-                    );
+                    if (_lastMessage != null) {
+                      final updatedConversation = _conversation.copyWith(
+                        lastMessage: _lastMessage!.text,
+                        lastMessageAt: _lastMessage!.timestamp,
+                        lastMessageType: _lastMessage!.type,
+                      );
 
-                    // If the pop is not handled by the system, handle it here
-                    Navigator.pop(context, updatedConversation);
+                      // If the pop is not handled by the system, handle it here
+                      Navigator.pop(context, updatedConversation);
+                    } else {
+                      Navigator.pop(context);
+                    }
                   },
                 ),
                 actions: [

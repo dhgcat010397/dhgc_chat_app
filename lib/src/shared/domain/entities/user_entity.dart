@@ -10,6 +10,7 @@ class UserEntity extends Equatable
   final String email;
   final String? displayName;
   final String? imgUrl;
+  final String? searchKey;
 
   const UserEntity({
     required this.uid,
@@ -17,10 +18,18 @@ class UserEntity extends Equatable
     required this.email,
     this.displayName = "",
     this.imgUrl = "",
+    this.searchKey = "",
   });
 
   @override
-  List<Object?> get props => [uid, username, email, displayName, imgUrl];
+  List<Object?> get props => [
+    uid,
+    username,
+    email,
+    displayName,
+    imgUrl,
+    searchKey,
+  ];
 
   @override
   UserModel toModel() {
@@ -30,6 +39,25 @@ class UserEntity extends Equatable
       email: email,
       displayName: displayName,
       imgUrl: imgUrl,
+      searchKey: searchKey,
+    );
+  }
+
+  UserEntity copyWith({
+    String? uid,
+    String? username,
+    String? email,
+    String? displayName,
+    String? imgUrl,
+    String? searchKey,
+  }) {
+    return UserEntity(
+      uid: uid ?? this.uid,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      imgUrl: imgUrl ?? this.imgUrl,
+      searchKey: searchKey ?? this.searchKey,
     );
   }
 }

@@ -58,7 +58,7 @@ class AuthService {
           'email': user.email,
           'displayName': user.displayName,
           'displayNameLower': user.displayName?.toLowerCase(),
-          'imgUrl': user.photoURL,
+          'imgUrl': user.photoURL ?? "",
           'searchKey': searchKey,
           'lastLogin': FieldValue.serverTimestamp(),
         },

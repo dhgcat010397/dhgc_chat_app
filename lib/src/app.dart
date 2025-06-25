@@ -1,3 +1,4 @@
+import 'package:dhgc_chat_app/src/core/services/notification_navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,6 +11,9 @@ import 'package:dhgc_chat_app/src/features/auth/presentation/bloc/auth_bloc.dart
 import 'package:dhgc_chat_app/src/shared/presentation/bloc/user_status_bloc/user_status_bloc.dart';
 
 class MyApp extends StatelessWidget {
+  // final NotificationNavigationService navigationService;
+
+  // const MyApp({required this.navigationService, super.key});
   const MyApp({super.key});
 
   @override
@@ -24,6 +28,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
+        // navigatorKey: navigationService.navigatorKey,
         initialRoute: AppRoutes.splash,
         onGenerateRoute: RouteGenerator.generateRoute,
         home: const AuthWrapper(),

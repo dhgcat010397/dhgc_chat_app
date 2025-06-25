@@ -141,7 +141,10 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
       final bool isGroup = participants.length > 2;
       ConversationEntity? existingConversation;
       if (!isGroup) {
-        existingConversation = await _findExistingConversation(participants);
+        existingConversation = await _findExistingConversation(
+          uid,
+          participants,
+        );
         if (existingConversation != null) {
           return existingConversation;
         }
@@ -176,6 +179,8 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         };
       }
 
+      final participantHash = _getParticipantHash(participants);
+
       final conversationData = {
         'id': conversationId,
         if (!isGroup) ...{
@@ -191,6 +196,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         'lastMessageTime': Timestamp.fromDate(now),
         'lastMessageType': MessageType.system.name,
         'participantData': participantData,
+        'participantHash': participantHash,
         'isGroup': isGroup,
         if (isGroup) ...{
           'groupName':
@@ -211,16 +217,6 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         data: conversationData,
       );
 
-      // Add system message
-      // await _chatRemoteDatasource.sendTextMessage(
-      //   chatroomId: conversationId,
-      //   senderId: 'system',
-      //   text:
-      //       isGroup
-      //           ? 'Group created by ${(await _userRemoteDatasource.getUserInfo(uid))?.displayName ?? 'User'}'
-      //           : 'Conversation started',
-      // );
-
       // Return the conversation entity
       return ConversationEntity(
         id: conversationId,
@@ -232,6 +228,14 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
                     ) ==
                     UserStatus.online
                 : false,
+
+        uid: isGroup ? null : participantsInfo.first!.uid,
+        name:
+            isGroup
+                ? null
+                : participantsInfo.first!.displayName ??
+                    participantsInfo.first!.username,
+        avatar: isGroup ? null : participantsInfo.first!.imgUrl ?? "",
         lastMessage: isGroup ? 'Group created' : 'Conversation started',
         lastMessageAt: now,
         lastMessageType: MessageType.system,
@@ -369,13 +373,24 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
     }
   }
 
+  String _getParticipantHash(List<String> participants) {
+    if (participants.isNotEmpty) {
+      final sortedParticipants = List<String>.from(participants)..sort();
+      final participantHash = sortedParticipants.join('_');
+
+      return participantHash;
+    }
+
+    return "";
+  }
+
   Future<ConversationEntity?> _findExistingConversation(
+    String uid,
     List<String> participants,
   ) async {
     try {
       // For performance, check the smallest participant list first
-      final sortedParticipants = List<String>.from(participants)..sort();
-      final participantHash = sortedParticipants.join('_');
+      final participantHash = _getParticipantHash(participants);
 
       // First try to find by exact participant match (optimized for 1:1 chats)
       final querySnapshot = await _firestoreService.getCollection(
@@ -383,6 +398,7 @@ class ConversationRemoteDatasourceImpl implements ConversationRemoteDatasource {
         queryBuilder: (Query query) {
           return query
               .where('participantHash', isEqualTo: participantHash)
+              .where('participants', arrayContains: uid)
               .limit(1);
         },
       );

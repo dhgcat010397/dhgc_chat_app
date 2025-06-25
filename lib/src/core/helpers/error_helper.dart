@@ -1,6 +1,9 @@
 import 'package:dhgc_chat_app/src/core/utils/extensions/string_extension.dart';
 
 class ErrorHelper {
+
+  ErrorHelper._();
+
   static String showFirebaseError(String code, String action) {
     switch (code) {
       case 'permission-denied':

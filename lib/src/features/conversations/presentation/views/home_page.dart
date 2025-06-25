@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
               di.sl<ConversationsBloc>()
                 ..add(ConversationsEvent.loadConversations(_user.uid)),
       child: BlocListener<ConversationsBloc, ConversationsState>(
-        listener: (context, state) => _handleStateChanges,
+        listener: _handleStateChanges,
         child: Scaffold(
           floatingActionButton: Builder(
             builder:
@@ -71,7 +71,10 @@ class _HomePageState extends State<HomePage> {
                   tooltip: 'New Conversation',
                   backgroundColor: backgroundColor,
                   shape: CircleBorder(side: BorderSide.none),
-                  child: const Icon(Icons.add, color: Colors.white),
+                  child: const Icon(
+                    Icons.add_comment_rounded,
+                    color: Colors.white,
+                  ),
                 ),
           ),
           backgroundColor: backgroundColor,
@@ -104,7 +107,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(width: 10.0),
                       CircleAvatarWidget(
-                        imageUrl: _user.imgUrl!,
+                        imageUrl: _user.imgUrl ?? "",
+                        initials: _user.displayName!.characters.first,
                         size: 60.0,
                         uid: _user.uid,
                       ),
@@ -190,13 +194,29 @@ class _HomePageState extends State<HomePage> {
         _hasMoreConversations = !hasReachedMax;
         _isLoadingMore = false;
       },
-      conversationCreated: (conversation) {
+      conversationCreated: (conversation) async {
+        final bloc = context.read<ConversationsBloc>();
         // Navigate to chat page when conversation is created
-        Navigator.pushNamed(
+        final newConversation = await Navigator.pushNamed(
           context,
           AppRoutes.chat,
           arguments: {'conversation': conversation, 'user': _user},
         );
+
+        // Reload conversations to include the new one
+        if (!mounted) return;
+        if (newConversation is ConversationEntity) {
+          if (_searchQuery.isEmpty) {
+            bloc.add(ConversationsEvent.loadConversations(_user.uid));
+          } else {
+            bloc.add(
+              ConversationsEvent.searchConversations(
+                uid: _user.uid,
+                query: _searchQuery,
+              ),
+            );
+          }
+        }
       },
       error: (code, message, _) {
         // Show error message if creation fails
@@ -335,7 +355,6 @@ class _HomePageState extends State<HomePage> {
           return ConversationCard(
             conversation: conversation,
             onTap: () => _openChat(itemContext, conversation),
-            uid: conversation.uid!,
           );
         },
       ),
@@ -468,11 +487,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _debugProviderHierarchy() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint(
-        WidgetsBinding.instance.rootElement?.toStringDeep() ?? "No widget tree",
-      );
-    });
-  }
+  // Track Widget Tree, use when debug
+  // void _debugProviderHierarchy() {
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     debugPrint(
+  //       WidgetsBinding.instance.rootElement?.toStringDeep() ?? "No widget tree",
+  //     );
+  //   });
+  // }
 }

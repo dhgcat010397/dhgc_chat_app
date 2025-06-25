@@ -1,5 +1,18 @@
 # dhgc_chat_app
 
+This project is a realtime chat app with features:
+1. Sign by email and password
+2. Register by email, password, fullname
+3. Sign via third-party: google sign
+4. Chat realtime 1-1
+
+This project apply Clean Architecture and use BLoC for state management, uses Firebase for authentication, store messages and push notification (this feature are developing).
+
+---
+
+**My `build.gradle.kts` is Kotlin, so all configs will use Kotlin DSL syntax**
+
+---
 
 ## Environment Variables
 
@@ -34,3 +47,31 @@ Copy these files and rename them as above, then fill in your real Firebase crede
 ---
 
 **Never share your real Firebase config files in a public repository!**
+
+---
+
+## Firebase Push Notification
+
+Add the following to your `android/app/build.gradle`:
+
+### 1. Enable core library desugaring in `compileOptions`:
+
+```kotlin
+android {
+    // ...existing code...
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+    }
+}
+```
+
+### 2. Add the desugaring library to dependencies:
+
+```kotlin
+dependencies {
+    // ...existing dependencies...
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+}
+```

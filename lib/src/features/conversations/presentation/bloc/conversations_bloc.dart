@@ -236,7 +236,7 @@ class ConversationsBloc extends Bloc<ConversationsEvent, ConversationsState> {
       emit(ConversationsState.conversationCreated(newConversation));
 
       // Reload conversations to include the new one
-      add(_LoadConversations(event.uid));
+      // add(_LoadConversations(event.uid));
     } catch (e, stackTrace) {
       emit(
         ConversationsState.error(
